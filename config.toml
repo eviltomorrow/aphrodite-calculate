@@ -1,0 +1,16 @@
+[mongodb]
+database = "aphrodite"
+dsn = "mongodb://localhost:27017"
+min-open = 5
+max-open = 10
+
+[log]
+disable-timestamp = false
+level = "info"
+format = "text"
+filename = "/tmp/aphrodite-calculate/data.log"
+maxsize = 50
+
+[system]
+# pprof 端口
+pprof-listen-port = 6060
