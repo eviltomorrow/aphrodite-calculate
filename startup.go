@@ -11,8 +11,8 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/eviltomorrow/aphrodite-base/zlog"
 	"github.com/eviltomorrow/aphrodite-calculate/config"
-	"github.com/eviltomorrow/aphrodite-calculate/zlog"
 )
 
 const (
