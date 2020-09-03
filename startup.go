@@ -44,10 +44,7 @@ func main() {
 	setupLogConfig()
 	setupGlobalVars()
 	printInfo()
-
-	log.Printf("Startup aphrodite-calculate ...\r\n")
 	registerCleanupFunc()
-
 	blockingUntilTermination()
 
 }
