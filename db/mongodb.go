@@ -27,7 +27,7 @@ var (
 
 // BuildMongoDB build mongodb
 func BuildMongoDB() {
-	pool, err := buildMongoDB(MongodbDSN)
+	pool, err := build(MongodbDSN)
 	if err != nil {
 		zlog.Fatal("Build mongodb connection failure", zap.Error(err))
 	}
@@ -51,7 +51,7 @@ func CloseMongoDB() error {
 	return err
 }
 
-func buildMongoDB(dsn string) (*mongo.Client, error) {
+func build(dsn string) (*mongo.Client, error) {
 	pool, err := mongo.NewClient(
 		options.Client().ApplyURI(dsn).SetMaxPoolSize(MongodbMaxOpen).SetMinPoolSize(MongodbMinOpen),
 	)

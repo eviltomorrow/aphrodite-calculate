@@ -15,7 +15,7 @@ func TestQueryQuoteOne(t *testing.T) {
 		"date": "2020-06-03",
 	}
 
-	quote, err := QueryQuoteOne(db.MongoDB, where)
+	quote, err := QueryQuoteBaseOne(db.MongoDB, where)
 	_assert.Nil(err)
 	t.Log(quote.String())
 }

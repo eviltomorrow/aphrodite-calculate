@@ -7,8 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// QueryQuoteOne query quote one
-func QueryQuoteOne(db *mongo.Client, where map[string]interface{}) (*Quote, error) {
+// QueryQuoteBaseOne query quote base one
+func QueryQuoteBaseOne(db *mongo.Client, where map[string]interface{}) (*QuoteBase, error) {
 	var collection = db.Database(MongodbDatabaseName).Collection(CollectionNameQuote)
 	ctx, cancel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cancel()
@@ -18,15 +18,15 @@ func QueryQuoteOne(db *mongo.Client, where map[string]interface{}) (*Quote, erro
 		return nil, result.Err()
 	}
 
-	var quote = &Quote{}
+	var quote = &QuoteBase{}
 	if err := result.Decode(quote); err != nil {
 		return nil, err
 	}
 	return quote, nil
 }
 
-// Quote quote
-type Quote struct {
+// QuoteBase quote base
+type QuoteBase struct {
 	ObjectID        string  `json:"_id" bson:"_id"`
 	Source          string  `json:"source" bson:"source"`                     // 来源
 	Code            string  `json:"code" bson:"code"`                         // 代码
@@ -43,7 +43,7 @@ type Quote struct {
 	ModifyTimestamp int64   `json:"modify_timestamp" bson:"modify_timestamp"` // 修改时间
 }
 
-func (q *Quote) String() string {
+func (q *QuoteBase) String() string {
 	buf, _ := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(q)
 	return string(buf)
 }

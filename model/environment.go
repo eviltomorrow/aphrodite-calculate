@@ -20,8 +20,3 @@ var (
 	CollectionNameQuote = fmt.Sprintf("quote_%s", time.Now().Format("2006"))
 	CollectionNameStock = "stock"
 )
-
-// mysql
-var (
-	MysqlDatabaseName = "aphrodite"
-)
