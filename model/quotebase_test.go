@@ -4,18 +4,22 @@ import (
 	"testing"
 
 	"github.com/eviltomorrow/aphrodite-calculate/db"
-	"github.com/stretchr/testify/assert"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestQueryQuoteOne(t *testing.T) {
-	_assert := assert.New(t)
 
-	var where = map[string]interface{}{
-		"code": "sz000055",
-		"date": "2020-06-03",
-	}
+	Convey("Test QueryQuoteOne", t, func() {
+		Convey("Collect case:", func() {
+			var where = map[string]interface{}{
+				"code": "sz000055",
+				"date": "2020-06-03",
+			}
 
-	quote, err := QueryQuoteBaseOne(db.MongoDB, where)
-	_assert.Nil(err)
-	t.Log(quote.String())
+			quote, err := QueryQuoteBaseOne(db.MongoDB, where)
+			So(err, ShouldBeNil)
+			So(quote, ShouldNotBeNil)
+		})
+	})
+
 }
