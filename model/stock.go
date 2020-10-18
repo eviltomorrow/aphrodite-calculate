@@ -15,6 +15,10 @@ import (
 
 // InsertStockManyForMySQL insert stock many for mysql
 func InsertStockManyForMySQL(db *sql.DB, stocks []*Stock) (int64, error) {
+	if len(stocks) == 0 {
+		return 0, nil
+	}
+
 	ctx, cannel := context.WithTimeout(context.Background(), InsertTimeout)
 	defer cannel()
 
@@ -29,7 +33,6 @@ func InsertStockManyForMySQL(db *sql.DB, stocks []*Stock) (int64, error) {
 
 	var _sql = fmt.Sprintf("insert into stock (%s) values %s", strings.Join(stockFeilds, ","), strings.Join(fields, ","))
 	result, err := db.ExecContext(ctx, _sql, args...)
-	fmt.Println(_sql)
 	if err != nil {
 		return 0, err
 	}
@@ -48,7 +51,7 @@ func UpdateStockByCodeForMySQL(db *sql.DB, code string, stock *Stock) (int64, er
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(stock.Source, stock.Name, stock.Code)
+	result, err := stmt.Exec(stock.Name, stock.Source, stock.Code)
 	if err != nil {
 		return 0, err
 	}
@@ -101,6 +104,10 @@ func QueryStockListForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) {
 
 // QueryStockListForMongoDB query stock list for mongodb
 func QueryStockListForMongoDB(db *mongo.Client, offset, limit int64) ([]*Stock, error) {
+	if limit == 0 {
+		return []*Stock{}, nil
+	}
+
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 

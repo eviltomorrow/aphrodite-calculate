@@ -7,7 +7,7 @@ import (
 
 // common
 var (
-	timeout       = 5 * time.Second
+	timeout       = 10 * time.Second
 	SelectTimeout = timeout
 	InsertTimeout = timeout
 	DeleteTimeout = timeout
