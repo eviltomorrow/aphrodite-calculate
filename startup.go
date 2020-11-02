@@ -31,6 +31,7 @@ func main() {
 		if err := recover(); err != nil {
 			zlog.Error("Panic: Unknown reason", zap.Error(fmt.Errorf("%v", err)))
 			debug.PrintStack()
+			zlog.Error("Stack", zap.String("stack", string(debug.Stack())))
 		}
 		zlog.Sync()
 	}()
