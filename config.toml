@@ -4,6 +4,8 @@ dsn = "mongodb://localhost:27017"
 min-open = 5
 max-open = 10
 
+[mysql]
+
 [log]
 disable-timestamp = false
 level = "info"

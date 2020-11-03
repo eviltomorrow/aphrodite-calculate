@@ -25,7 +25,7 @@ create table `aphrodite`.`quote_day` (
     `volume` BIGINT NOT NULL COMMENT '交易量',
     `account` DECIMAL NOT NULL COMMENT '金额',
     `date` TIMESTAMP NOT NULL COMMENT '日期',
-    `year_day` INT NOT NULL COMMENT '天数',
+    `day_of_year` INT NOT NULL COMMENT '天数',
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );
@@ -43,7 +43,7 @@ create table `aphrodite`.`quote_week` (
     `account` DECIMAL NOT NULL COMMENT '金额',
     `date_begin` TIMESTAMP NOT NULL COMMENT '开始时期',
     `date_end` TIMESTAMP NOT NULL COMMENT '结束时期',
-    `year_week` INT NOT NULL COMMENT '周数',
+    `week_of_year` INT NOT NULL COMMENT '周数',
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );

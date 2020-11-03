@@ -12,7 +12,7 @@ func init() {
 	db.MongodbMinOpen = 5
 	db.BuildMongoDB()
 
-	db.MySQLDSN = "root:root@tcp(localhost:3306)/aphrodite?charset=utf8"
+	db.MySQLDSN = "root:root@tcp(localhost:3306)/aphrodite?charset=utf8mb4&parseTime=true&loc=Local"
 	db.MySQLMaxOpen = 10
 	db.MySQLMinOpen = 5
 	db.BuildMySQL()

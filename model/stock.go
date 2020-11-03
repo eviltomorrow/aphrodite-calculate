@@ -65,9 +65,9 @@ func QueryStockOneForMySQL(db *sql.DB, code string) (*Stock, error) {
 
 	var _sql = `select code, name, source, create_timestamp, modify_timestamp from stock where code = ?`
 	row := db.QueryRowContext(ctx, _sql, code)
-	if err := row.Err(); err != nil {
-		return nil, err
-	}
+	// if err := row.Err(); err != nil {
+	// 	return nil, err
+	// }
 
 	var stock = &Stock{}
 	if err := row.Scan(&stock.Code, &stock.Name, &stock.Source, &stock.CreateTimestamp, &stock.ModifyTimestamp); err != nil {

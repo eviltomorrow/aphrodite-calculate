@@ -18,7 +18,7 @@ type QuoteWeek struct {
 	Account         float64   `json:"account"`
 	DateBegin       time.Time `json:"date_begin"`
 	DateEnd         time.Time `json:"date_end"`
-	YearWeek        int       `json:"year_week"`
+	YearWeek        int       `json:"week_of_year"`
 	CreateTimestamp time.Time `json:"create_timestamp"`
 	ModifyTimestamp time.Time `json:"modify_timestamp"`
 }
