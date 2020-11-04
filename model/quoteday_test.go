@@ -9,6 +9,42 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func TestSelectQuoteDayByCodesDateForMySQL(t *testing.T) {
+	Convey("Test Delete QuoteDay Many", t, func() {
+		Convey("Case1", func() {
+			quotes, err := SelectQuoteDayByCodeDate(db.MySQL, []string{"sz000002"}, "2020-10-02")
+			So(err, ShouldBeNil)
+			So(len(quotes), ShouldEqual, 4)
+			for _, quote := range quotes {
+				t.Logf("quote: %v\r\n", quote.String())
+			}
+		})
+	})
+}
+
+func TestSelectQuoteDayLatestByCodeDate(t *testing.T) {
+	Convey("Test Delete QuoteDay Many", t, func() {
+		Convey("Case1", func() {
+			quotes, err := SelectQuoteDayLatestByCodeDate(db.MySQL, "sz000002", "2020-10-02", 10)
+			So(err, ShouldBeNil)
+			So(len(quotes), ShouldEqual, 4)
+			for _, quote := range quotes {
+				t.Logf("quote: %v\r\n", quote.String())
+			}
+		})
+	})
+}
+
+func TestDeleteQuoteDayByCodeDateForMySQL(t *testing.T) {
+	Convey("Test Delete QuoteDay Many", t, func() {
+		Convey("Case1", func() {
+			affected, err := DeleteQuoteDayByCodeDate(db.MySQL, "sz000002", "2020-10-02")
+			So(err, ShouldBeNil)
+			So(affected, ShouldEqual, 1)
+		})
+	})
+}
+
 func TestInsertQuoteDayManyForMySQL(t *testing.T) {
 	Convey("Test Insert QuoteDay Many", t, func() {
 
@@ -42,7 +78,7 @@ func TestInsertQuoteDayManyForMySQL(t *testing.T) {
 		}
 
 		Convey("Case 1", func() {
-			affected, err := InsertQuoteDayManyForMySQL(db.MySQL, quotes)
+			affected, err := InsertQuoteDayMany(db.MySQL, quotes)
 			So(err, ShouldBeNil)
 			So(affected, ShouldEqual, 2)
 		})

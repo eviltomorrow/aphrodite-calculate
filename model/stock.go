@@ -51,15 +51,15 @@ func UpdateStockByCodeForMySQL(db *sql.DB, code string, stock *Stock) (int64, er
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(stock.Name, stock.Source, stock.Code)
+	result, err := stmt.Exec(stock.Name, stock.Source, code)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-// QueryStockOneForMySQL query stock one for mysql
-func QueryStockOneForMySQL(db *sql.DB, code string) (*Stock, error) {
+// SelectStockOneForMySQL select stock one for mysql
+func SelectStockOneForMySQL(db *sql.DB, code string) (*Stock, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
@@ -76,8 +76,8 @@ func QueryStockOneForMySQL(db *sql.DB, code string) (*Stock, error) {
 	return stock, nil
 }
 
-// QueryStockListForMySQL query stock list for mysql
-func QueryStockListForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) {
+// SelectStockListForMySQL select stock list for mysql
+func SelectStockListForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
@@ -86,6 +86,7 @@ func QueryStockListForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var stocks = make([]*Stock, 0, limit)
 	for rows.Next() {
@@ -102,9 +103,9 @@ func QueryStockListForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) {
 	return stocks, nil
 }
 
-// QueryStockListForMongoDB query stock list for mongodb
-func QueryStockListForMongoDB(db *mongo.Client, offset, limit int64) ([]*Stock, error) {
-	if limit == 0 {
+// SelectStockListForMongoDB select stock list for mongodb
+func SelectStockListForMongoDB(db *mongo.Client, offset, limit int64) ([]*Stock, error) {
+	if limit <= 0 {
 		return []*Stock{}, nil
 	}
 
