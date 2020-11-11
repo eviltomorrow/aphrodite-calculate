@@ -1,10 +1,15 @@
 package model
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"database/sql/driver"
+	"encoding/binary"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -155,15 +160,84 @@ var stockFeilds = []string{
 	StockFeildModifyTimestamp,
 }
 
+// Time time
+type Time time.Time
+
+// UnmarshalJSON unmarshal json
+func (t *Time) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+	num, err := strconv.Atoi(string(data))
+	if err != nil {
+		return err
+	}
+	*t = Time(time.Unix(int64(num), 0))
+	return nil
+}
+
+// MarshalJSON marshal json
+func (t Time) MarshalJSON() ([]byte, error) {
+	return []byte(t.String()), nil
+}
+
+// UnmarshalBSON unmarshal bson
+func (t *Time) UnmarshalBSON(data []byte) error {
+	var num int64
+	buffer := bytes.NewBuffer(data)
+	if err := binary.Read(buffer, binary.LittleEndian, &num); err != nil {
+		return err
+	}
+	if num == 0 {
+		return nil
+	}
+	*t = Time(time.Unix(int64(num), 0))
+	return nil
+}
+
+// MarshalBSON marshal bson
+func (t Time) MarshalBSON() ([]byte, error) {
+	return []byte(t.String()), nil
+}
+
+func (t Time) String() string {
+	if time.Time(t).IsZero() {
+		return `""`
+	}
+	return time.Time(t).Format("2006-01-02 15:04:05")
+}
+
+// Scan scan
+func (t *Time) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	switch value.(type) {
+	case time.Time:
+		*t = Time(value.(time.Time))
+	default:
+	}
+	return nil
+}
+
+// Value value
+func (t Time) Value() (driver.Value, error) {
+	if time.Time(t).IsZero() {
+		return "", nil
+	}
+	return t.String(), nil
+}
+
 // Stock stock
 type Stock struct {
 	ObjectID        string `json:"_id" bson:"_id"`
 	Code            string `json:"code" bson:"code"`
 	Name            string `json:"name" bson:"name"`
 	Source          string `json:"source" bson:"source"`
-	Valid           bool   `json:"valid" bson:"valid"`
-	CreateTimestamp int64  `json:"create_timestamp" bson:"create_timestamp"`
-	ModifyTimestamp int64  `json:"modify_timestamp" bson:"modify_timestamp"`
+	Valid           bool   `json:"valid,omitempty" bson:"valid"`
+	CreateTimestamp Time   `json:"create_timestamp,omitempty" bson:"create_timestamp"`
+	ModifyTimestamp Time   `json:"modify_timestamp,omitempty" bson:"modify_timestamp"`
 }
 
 func (s *Stock) String() string {

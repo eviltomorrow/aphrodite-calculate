@@ -9,12 +9,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestQueryStockListForMongoDB(t *testing.T) {
+func TestSelectStockListForMongoDB(t *testing.T) {
 	Convey("Test Query Stock List For MongoDB", t, func() {
 		Convey("Case 1: offset: 0, limit: 20, expect; 20", func() {
 			stocks, err := SelectStockListForMongoDB(db.MongoDB, 0, 20)
 			So(err, ShouldBeNil)
 			So(len(stocks), ShouldEqual, 20)
+			for _, stock := range stocks {
+				t.Logf("Stock: %v\r\n", stock)
+			}
 		})
 
 		Convey("Case 2: offset: 0, limit: 0, expect; 0", func() {
@@ -55,6 +58,49 @@ func TestInsertStockManyForMySQL(t *testing.T) {
 			affected, err := InsertStockManyForMySQL(db.MySQL, insert)
 			So(err, ShouldBeNil)
 			So(int64(len(insert)), ShouldEqual, affected)
+		})
+	})
+}
+
+func TestUpdateStockByCodeForMySQL(t *testing.T) {
+	Convey("Test Update Stock By Code For MySQL", t, func() {
+		Convey("Case 1", func() {
+			var stock = &Stock{
+				Code:   "sz000005",
+				Name:   "更新测试",
+				Source: "sina",
+				Valid:  true,
+			}
+			affected, err := UpdateStockByCodeForMySQL(db.MySQL, "sz000005", stock)
+			So(err, ShouldBeNil)
+			So(affected, ShouldEqual, int64(1))
+
+			affected, err = UpdateStockByCodeForMySQL(db.MySQL, "sz000006", stock)
+			So(err, ShouldBeNil)
+			So(affected, ShouldEqual, int64(0))
+		})
+	})
+}
+
+func TestSelectStockOneForMySQL(t *testing.T) {
+	Convey("Test Select Stock One For MySQL", t, func() {
+		Convey("Case 1", func() {
+			var code = "sz000005"
+			stock, err := SelectStockOneForMySQL(db.MySQL, code)
+			So(err, ShouldBeNil)
+			So(code, ShouldEqual, stock.Code)
+			t.Logf("Stock: %v\r\n", stock)
+
+			code = "sz000001"
+			stock, err = SelectStockOneForMySQL(db.MySQL, code)
+			So(err, ShouldBeNil)
+			So(code, ShouldEqual, stock.Code)
+			t.Logf("Stock: %v\r\n", stock)
+
+			code = "zs000005"
+			stock, err = SelectStockOneForMySQL(db.MySQL, code)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 	})
 }
