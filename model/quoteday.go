@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -98,13 +99,25 @@ func SelectQuoteDayByCodeDate(db *sql.DB, codes []string, date string) ([]QuoteD
 	return quotes, nil
 }
 
-// DeleteQuoteDayByCodeDate delete quoteday
-func DeleteQuoteDayByCodeDate(db *sql.DB, code string, date string) (int64, error) {
+// DeleteQuoteDayByCodesDate delete quoteday
+func DeleteQuoteDayByCodesDate(db db.ExecMySQL, codes []string, date string) (int64, error) {
+	if len(codes) == 0 {
+		return 0, nil
+	}
+
 	ctx, cannel := context.WithTimeout(context.Background(), DeleteTimeout)
 	defer cannel()
 
-	var _sql = "delete from quote_day where code = ? and date = ?"
-	result, err := db.ExecContext(ctx, _sql, code, date)
+	var feilds = make([]string, 0, len(codes))
+	var args = make([]interface{}, 0, len(codes)+1)
+	for _, code := range codes {
+		feilds = append(feilds, "?")
+		args = append(args, code)
+	}
+	args = append(args, date)
+
+	var _sql = fmt.Sprintf("delete from quote_day where code in (%s) and date = ?", strings.Join(feilds, ","))
+	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
 	}
@@ -112,7 +125,7 @@ func DeleteQuoteDayByCodeDate(db *sql.DB, code string, date string) (int64, erro
 }
 
 // InsertQuoteDayMany batch insert quoteday for mysql
-func InsertQuoteDayMany(db *sql.DB, quotes []*QuoteDay) (int64, error) {
+func InsertQuoteDayMany(db db.ExecMySQL, quotes []*QuoteDay) (int64, error) {
 	if len(quotes) == 0 {
 		return 0, nil
 	}

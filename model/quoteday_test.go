@@ -1,87 +1,121 @@
 package model
 
 import (
-	"fmt"
+	"runtime"
 	"testing"
 	"time"
 
 	"github.com/eviltomorrow/aphrodite-calculate/db"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestSelectQuoteDayByCodesDateForMySQL(t *testing.T) {
-	Convey("Test Delete QuoteDay Many", t, func() {
-		Convey("Case1", func() {
-			quotes, err := SelectQuoteDayByCodeDate(db.MySQL, []string{"sz000002"}, "2020-10-02")
-			So(err, ShouldBeNil)
-			So(len(quotes), ShouldEqual, 4)
-			for _, quote := range quotes {
-				t.Logf("quote: %v\r\n", quote.String())
-			}
-		})
-	})
+var date = time.Date(2020, 12, 03, 0, 0, 0, 0, time.Local)
+
+var q1 = &QuoteDay{
+	Code:            "sz000001",
+	Open:            20.00,
+	Close:           21.23,
+	High:            21.54,
+	Low:             19.33,
+	Volume:          521563,
+	Account:         20.69 * 521563,
+	Date:            date,
+	DayOfYear:       date.YearDay(),
+	CreateTimestamp: time.Now(),
 }
 
-func TestSelectQuoteDayLatestByCodeDate(t *testing.T) {
-	Convey("Test Delete QuoteDay Many", t, func() {
-		Convey("Case1", func() {
-			quotes, err := SelectQuoteDayLatestByCodeDate(db.MySQL, "sz000002", "2020-10-02", 10)
-			So(err, ShouldBeNil)
-			So(len(quotes), ShouldEqual, 4)
-			for _, quote := range quotes {
-				t.Logf("quote: %v\r\n", quote.String())
-			}
-		})
-	})
+var q2 = &QuoteDay{
+	Code:            "sh600365",
+	Open:            40.00,
+	Close:           43.93,
+	High:            44.00,
+	Low:             38.63,
+	Volume:          1563,
+	Account:         41.68 * 1563,
+	Date:            date,
+	DayOfYear:       date.YearDay(),
+	CreateTimestamp: time.Now(),
 }
 
-func TestDeleteQuoteDayByCodeDateForMySQL(t *testing.T) {
-	Convey("Test Delete QuoteDay Many", t, func() {
-		Convey("Case1", func() {
-			affected, err := DeleteQuoteDayByCodeDate(db.MySQL, "sz000002", "2020-10-02")
-			So(err, ShouldBeNil)
-			So(affected, ShouldEqual, 1)
-		})
-	})
+func TestInsertQuoteDayMany(t *testing.T) {
+	_assert := assert.New(t)
+	tx, err := db.MySQL.Begin()
+	if err != nil {
+		t.Fatalf("Begin tx error: %v\r\n", err)
+	}
+
+	// clear old data
+	DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
+
+	// right
+	affected, err := InsertQuoteDayMany(tx, []*QuoteDay{q1, q2})
+	_assert.Nil(err)
+	_assert.Equal(int64(2), affected)
+
+	tx.Commit()
 }
 
-func TestInsertQuoteDayManyForMySQL(t *testing.T) {
-	Convey("Test Insert QuoteDay Many", t, func() {
+func TestDeleteQuoteDayByCodesDate(t *testing.T) {
+	_assert := assert.New(t)
+	tx, err := db.MySQL.Begin()
+	if err != nil {
+		t.Fatalf("Begin tx error: %v\r\n", err)
+	}
 
-		date, err := time.ParseInLocation("2006-01-02", "2020-10-02", time.Local)
-		fmt.Println(date)
-		So(err, ShouldBeNil)
+	// prepare data
+	_, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
+	_assert.Nil(err)
+	_, err = InsertQuoteDayMany(tx, []*QuoteDay{q1, q2})
+	_assert.Nil(err)
 
-		var quotes = []*QuoteDay{
-			&QuoteDay{
-				Code:      "sz000001",
-				Open:      10.01,
-				Close:     11.01,
-				High:      11.01,
-				Low:       10.01,
-				Volume:    100023123,
-				Account:   2314144.12,
-				Date:      date,
-				DayOfYear: 245,
-			},
-			&QuoteDay{
-				Code:      "sz000002",
-				Open:      12.01,
-				Close:     12.01,
-				High:      12.01,
-				Low:       12.01,
-				Volume:    100023123,
-				Account:   2314144.12,
-				Date:      date,
-				DayOfYear: 245,
-			},
+	affected, err := DeleteQuoteDayByCodesDate(tx, []string{}, date.Format("2006-01-02"))
+	_assert.Nil(err)
+	_assert.Equal(int64(0), affected)
+
+	affected, err = DeleteQuoteDayByCodesDate(tx, []string{"no123"}, date.Format("2006-01-02"))
+	_assert.Nil(err)
+	_assert.Equal(int64(0), affected)
+
+	affected, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code}, date.Format("2006-01-02"))
+	_assert.Nil(err)
+	_assert.Equal(int64(1), affected)
+
+	affected, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code}, date.Format("2006-01-02"))
+	_assert.Nil(err)
+	_assert.Equal(int64(0), affected)
+
+	affected, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
+	_assert.Nil(err)
+	_assert.Equal(int64(1), affected)
+
+	tx.Commit()
+}
+
+func BenchmarkInsertQuoteDayMany(b *testing.B) {
+	b.ResetTimer()
+
+	tx, err := db.MySQL.Begin()
+	if err != nil {
+		b.Fatalf("Error: %v", err)
+	}
+	for i := 0; i < b.N; i++ {
+		DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
+		InsertQuoteDayMany(tx, []*QuoteDay{q1, q2})
+	}
+	tx.Commit()
+}
+
+func BenchmarkParallelInsertQuoteDayMany(b *testing.B) {
+	b.SetParallelism(runtime.NumCPU())
+	tx, err := db.MySQL.Begin()
+	if err != nil {
+		b.Fatalf("Error: %v", err)
+	}
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			InsertQuoteDayMany(tx, []*QuoteDay{q1, q2})
 		}
-
-		Convey("Case 1", func() {
-			affected, err := InsertQuoteDayMany(db.MySQL, quotes)
-			So(err, ShouldBeNil)
-			So(affected, ShouldEqual, 2)
-		})
-
 	})
+	tx.Commit()
 }

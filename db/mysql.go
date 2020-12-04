@@ -60,3 +60,8 @@ func buildMySQL(dsn string) (*sql.DB, error) {
 	}
 	return pool, nil
 }
+
+// ExecMySQL exec mysql
+type ExecMySQL interface {
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+}
