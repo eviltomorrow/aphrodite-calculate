@@ -2,16 +2,16 @@ package model
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 	jsoniter "github.com/json-iterator/go"
 )
 
 // SelectQuoteWeekLatestByCodeDate select quoteweek
-func SelectQuoteWeekLatestByCodeDate(db *sql.DB, code string, date string, size int) ([]QuoteWeek, error) {
+func SelectQuoteWeekLatestByCodeDate(db db.ExecMySQL, code string, date string, size int) ([]QuoteWeek, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
@@ -50,7 +50,7 @@ func SelectQuoteWeekLatestByCodeDate(db *sql.DB, code string, date string, size 
 }
 
 // SelectQuoteWeekByCodeDate select quoteday
-func SelectQuoteWeekByCodeDate(db *sql.DB, codes []string, date string) ([]QuoteWeek, error) {
+func SelectQuoteWeekByCodeDate(db db.ExecMySQL, codes []string, date string) ([]QuoteWeek, error) {
 	if len(codes) == 0 {
 		return []QuoteWeek{}, nil
 	}
@@ -101,11 +101,11 @@ func SelectQuoteWeekByCodeDate(db *sql.DB, codes []string, date string) ([]Quote
 }
 
 // DeleteQuoteWeekByCodeDate delete quoteweek
-func DeleteQuoteWeekByCodeDate(db *sql.DB, code string, date string) (int64, error) {
+func DeleteQuoteWeekByCodeDate(db db.ExecMySQL, code string, date string) (int64, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), DeleteTimeout)
 	defer cannel()
 
-	var _sql = "delete from quote_day where code = ? and date = ?"
+	var _sql = "delete from quote_week where code = ? and date_end = ?"
 	result, err := db.ExecContext(ctx, _sql, code, date)
 	if err != nil {
 		return 0, err
@@ -114,7 +114,7 @@ func DeleteQuoteWeekByCodeDate(db *sql.DB, code string, date string) (int64, err
 }
 
 // InsertQuoteWeekMany batch insert quoteweek for mysql
-func InsertQuoteWeekMany(db *sql.DB, quotes []*QuoteWeek) (int64, error) {
+func InsertQuoteWeekMany(db db.ExecMySQL, quotes []*QuoteWeek) (int64, error) {
 	if len(quotes) == 0 {
 		return 0, nil
 	}

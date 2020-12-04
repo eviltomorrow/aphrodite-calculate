@@ -12,11 +12,15 @@ import (
 )
 
 // SelectQuoteDayLatestByCodeDate select quoteday
-func SelectQuoteDayLatestByCodeDate(db *sql.DB, code string, date string, size int) ([]QuoteDay, error) {
+func SelectQuoteDayLatestByCodeDate(db db.ExecMySQL, code string, date string, size int) ([]QuoteDay, error) {
+	if size < 0 {
+		return []QuoteDay{}, nil
+	}
+
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = "select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code =? and date = ? order by date desc limit ?"
+	var _sql = "select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code =? and date <= ? order by date desc limit ?"
 	rows, err := db.QueryContext(ctx, _sql, code, date, size)
 	if err != nil {
 		return nil, err
@@ -49,8 +53,8 @@ func SelectQuoteDayLatestByCodeDate(db *sql.DB, code string, date string, size i
 	return quotes, nil
 }
 
-// SelectQuoteDayByCodeDate select quoteday
-func SelectQuoteDayByCodeDate(db *sql.DB, codes []string, date string) ([]QuoteDay, error) {
+// SelectQuoteDayByCodesDate select quoteday
+func SelectQuoteDayByCodesDate(db db.ExecMySQL, codes []string, date string) ([]QuoteDay, error) {
 	if len(codes) == 0 {
 		return []QuoteDay{}, nil
 	}
