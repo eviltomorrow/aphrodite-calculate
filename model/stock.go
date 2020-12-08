@@ -11,15 +11,18 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 	jsoniter "github.com/json-iterator/go"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // InsertStockManyForMySQL insert stock many for mysql
-func InsertStockManyForMySQL(db *sql.DB, stocks []*Stock) (int64, error) {
+func InsertStockManyForMySQL(db db.ExecMySQL, stocks []*Stock) (int64, error) {
 	if len(stocks) == 0 {
 		return 0, nil
 	}
@@ -45,18 +48,17 @@ func InsertStockManyForMySQL(db *sql.DB, stocks []*Stock) (int64, error) {
 }
 
 // UpdateStockByCodeForMySQL update stock by code for mysql
-func UpdateStockByCodeForMySQL(db *sql.DB, code string, stock *Stock) (int64, error) {
+func UpdateStockByCodeForMySQL(db db.ExecMySQL, code string, stock *Stock) (int64, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), UpdateTimeout)
 	defer cannel()
 
 	var _sql = `update stock set name = ?, source = ?, modify_timestamp = now() where code = ?`
-	stmt, err := db.PrepareContext(ctx, _sql)
-	if err != nil {
-		return 0, err
+	var args = []interface{}{
+		stock.Name,
+		stock.Source,
+		code,
 	}
-	defer stmt.Close()
-
-	result, err := stmt.Exec(stock.Name, stock.Source, code)
+	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
 	}
@@ -64,7 +66,7 @@ func UpdateStockByCodeForMySQL(db *sql.DB, code string, stock *Stock) (int64, er
 }
 
 // SelectStockOneForMySQL select stock one for mysql
-func SelectStockOneForMySQL(db *sql.DB, code string) (*Stock, error) {
+func SelectStockOneForMySQL(db db.ExecMySQL, code string) (*Stock, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
@@ -81,8 +83,8 @@ func SelectStockOneForMySQL(db *sql.DB, code string) (*Stock, error) {
 	return stock, nil
 }
 
-// SelectStockListForMySQL select stock list for mysql
-func SelectStockListForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) {
+// SelectStockManyForMySQL select stock list for mysql
+func SelectStockManyForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
@@ -108,8 +110,8 @@ func SelectStockListForMySQL(db *sql.DB, offset, limit int64) ([]*Stock, error) 
 	return stocks, nil
 }
 
-// SelectStockListForMongoDB select stock list for mongodb
-func SelectStockListForMongoDB(db *mongo.Client, offset, limit int64) ([]*Stock, error) {
+// SelectStockManyForMongoDB select stock list for mongodb
+func SelectStockManyForMongoDB(db *mongo.Client, offset, limit int64, lastID string) ([]*Stock, error) {
 	if limit <= 0 {
 		return []*Stock{}, nil
 	}
@@ -120,9 +122,21 @@ func SelectStockListForMongoDB(db *mongo.Client, offset, limit int64) ([]*Stock,
 	var collection = db.Database(MongodbDatabaseName).Collection(CollectionNameStock)
 
 	var opt = &options.FindOptions{}
-	opt.SetSkip(offset)
 	opt.SetLimit(limit)
-	cur, err := collection.Find(ctx, bson.M{}, opt)
+
+	var filter = bson.M{}
+	if lastID != "" {
+		objectID, err := primitive.ObjectIDFromHex(lastID)
+		if err != nil {
+			return nil, err
+		}
+		filter = bson.M{"_id": bson.M{"$gt": objectID}}
+	} else {
+		opt.SetSkip(offset)
+	}
+
+	// fmt.Println(filter)
+	cur, err := collection.Find(ctx, filter, opt)
 	if err != nil {
 		return nil, err
 	}

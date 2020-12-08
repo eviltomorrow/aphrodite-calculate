@@ -29,6 +29,7 @@ create table `aphrodite`.`quote_day` (
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );
+create index date_code on `aphrodite`.`quote_day`(`date`,`code`);
 
 -- stock 表
 drop table if exists `aphrodite`.`quote_week`;
@@ -47,3 +48,4 @@ create table `aphrodite`.`quote_week` (
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );
+create index date_end_code on `aphrodite`.`quote_week`(`date_end`,`code`);

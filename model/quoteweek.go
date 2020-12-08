@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -15,7 +16,7 @@ func SelectQuoteWeekLatestByCodeDate(db db.ExecMySQL, code string, date string, 
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = "select id, code, open, close, high, low, volume, account, date_begin, date_end, week_of_year, create_timestamp, modify_timestamp from quote_week where code =? and date = ? order by date desc limit ?"
+	var _sql = "select id, code, open, close, high, low, volume, account, date_begin, date_end, week_of_year, create_timestamp, modify_timestamp from quote_week where code =? and date_end <= ? order by date_end desc limit ?"
 	rows, err := db.QueryContext(ctx, _sql, code, date, size)
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func SelectQuoteWeekByCodeDate(db db.ExecMySQL, codes []string, date string) ([]
 		args = append(args, code)
 	}
 	args = append(args, date)
-	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date_begin, date_end, week_of_year, create_timestamp, modify_timestamp from quote_week where code in (%s) and date = ?", strings.Join(fields, ","))
+	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date_begin, date_end, week_of_year, create_timestamp, modify_timestamp from quote_week where code in (%s) and date_end = ?", strings.Join(fields, ","))
 
 	rows, err := db.QueryContext(ctx, _sql, args...)
 	if err != nil {
@@ -100,13 +101,25 @@ func SelectQuoteWeekByCodeDate(db db.ExecMySQL, codes []string, date string) ([]
 	return quotes, nil
 }
 
-// DeleteQuoteWeekByCodeDate delete quoteweek
-func DeleteQuoteWeekByCodeDate(db db.ExecMySQL, code string, date string) (int64, error) {
+// DeleteQuoteWeekByCodesDate delete quoteweek
+func DeleteQuoteWeekByCodesDate(db db.ExecMySQL, codes []string, date string) (int64, error) {
+	if len(codes) == 0 {
+		return 0, nil
+	}
+
 	ctx, cannel := context.WithTimeout(context.Background(), DeleteTimeout)
 	defer cannel()
 
-	var _sql = "delete from quote_week where code = ? and date_end = ?"
-	result, err := db.ExecContext(ctx, _sql, code, date)
+	var feilds = make([]string, 0, len(codes))
+	var args = make([]interface{}, 0, len(codes)+1)
+	for _, code := range codes {
+		feilds = append(feilds, "?")
+		args = append(args, code)
+	}
+	args = append(args, date)
+
+	var _sql = fmt.Sprintf("delete from quote_week where code in (%s) and date_end = ?", strings.Join(feilds, ","))
+	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
 	}
@@ -179,19 +192,19 @@ var quoteWeekFeilds = []string{
 
 // QuoteWeek quote week
 type QuoteWeek struct {
-	ID              int64     `json:"id"`
-	Code            string    `json:"code"`
-	Open            float64   `json:"open"`
-	Close           float64   `json:"close"`
-	High            float64   `json:"high"`
-	Low             float64   `json:"low"`
-	Volume          int64     `json:"volume"`
-	Account         float64   `json:"account"`
-	DateBegin       time.Time `json:"date_begin"`
-	DateEnd         time.Time `json:"date_end"`
-	WeekOfYear      int       `json:"week_of_year"`
-	CreateTimestamp time.Time `json:"create_timestamp"`
-	ModifyTimestamp time.Time `json:"modify_timestamp"`
+	ID              int64        `json:"id"`
+	Code            string       `json:"code"`
+	Open            float64      `json:"open"`
+	Close           float64      `json:"close"`
+	High            float64      `json:"high"`
+	Low             float64      `json:"low"`
+	Volume          int64        `json:"volume"`
+	Account         float64      `json:"account"`
+	DateBegin       time.Time    `json:"date_begin"`
+	DateEnd         time.Time    `json:"date_end"`
+	WeekOfYear      int          `json:"week_of_year"`
+	CreateTimestamp time.Time    `json:"create_timestamp"`
+	ModifyTimestamp sql.NullTime `json:"modify_timestamp"`
 }
 
 func (q *QuoteWeek) String() string {

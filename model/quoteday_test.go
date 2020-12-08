@@ -188,6 +188,7 @@ func BenchmarkSelectQuoteDayLatestByCodeDate(b *testing.B) {
 	}
 	tx.Commit()
 
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		SelectQuoteDayLatestByCodeDate(db.MySQL, q1.Code, date.Format("2006-01-02"), 30)
 	}
@@ -195,14 +196,15 @@ func BenchmarkSelectQuoteDayLatestByCodeDate(b *testing.B) {
 }
 
 func BenchmarkInsertQuoteDayMany(b *testing.B) {
-	b.ResetTimer()
-
 	tx, err := db.MySQL.Begin()
 	if err != nil {
 		b.Fatalf("Error: %v", err)
 	}
+
+	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
-		DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
+		// DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
 		InsertQuoteDayMany(tx, []*QuoteDay{q1, q2})
 	}
 	tx.Commit()
@@ -214,6 +216,8 @@ func BenchmarkParallelInsertQuoteDayMany(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Error: %v", err)
 	}
+
+	b.ResetTimer()
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {

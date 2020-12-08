@@ -65,4 +65,5 @@ func buildMySQL(dsn string) (*sql.DB, error) {
 type ExecMySQL interface {
 	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
 }

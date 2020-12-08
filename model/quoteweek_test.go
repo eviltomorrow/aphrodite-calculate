@@ -26,14 +26,28 @@ var qw1 = &QuoteWeek{
 	CreateTimestamp: time.Now(),
 }
 
-func TestDeleteQuoteWeekByCodeDate(t *testing.T) {
+var qw2 = &QuoteWeek{
+	Code:            "sz000002",
+	Open:            30.30,
+	Close:           35.23,
+	High:            47.54,
+	Low:             26.33,
+	Volume:          42521563,
+	Account:         30.69 * 42521563,
+	DateBegin:       beginDate,
+	DateEnd:         endDate,
+	WeekOfYear:      ztime.YearWeek(endDate),
+	CreateTimestamp: time.Now(),
+}
+
+func TestDeleteQuoteWeekByCodesDate(t *testing.T) {
 	_assert := assert.New(t)
 
 	tx, err := db.MySQL.Begin()
 	if err != nil {
 		t.Fatalf("Begin error: %v\r\n", err)
 	}
-	_, err = DeleteQuoteWeekByCodeDate(tx, qw1.Code, endDate.Format("2006-01-02"))
+	_, err = DeleteQuoteWeekByCodesDate(tx, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
 	_assert.Nil(err)
 	tx.Commit()
 
@@ -41,7 +55,7 @@ func TestDeleteQuoteWeekByCodeDate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Begin error: %v\r\n", err)
 	}
-	affected, err := DeleteQuoteWeekByCodeDate(tx, qw1.Code, endDate.Format("2006-01-02"))
+	affected, err := DeleteQuoteWeekByCodesDate(tx, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
 	_assert.Nil(err)
 	_assert.Equal(int64(0), affected)
 	tx.Commit()
@@ -54,12 +68,12 @@ func TestInsertQuoteWeekMany(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Begin error: %v\r\n", err)
 	}
-	_, err = DeleteQuoteWeekByCodeDate(tx, qw1.Code, endDate.Format("2006-01-02"))
+	_, err = DeleteQuoteWeekByCodesDate(tx, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
 	_assert.Nil(err)
 
-	affected, err := InsertQuoteWeekMany(tx, []*QuoteWeek{qw1})
+	affected, err := InsertQuoteWeekMany(tx, []*QuoteWeek{qw1, qw2})
 	_assert.Nil(err)
-	_assert.Equal(int64(1), affected)
+	_assert.Equal(int64(2), affected)
 
 	affected, err = InsertQuoteWeekMany(tx, []*QuoteWeek{})
 	_assert.Nil(err)
@@ -75,4 +89,42 @@ func TestInsertQuoteWeekMany(t *testing.T) {
 	_assert.Equal(int64(20), affected)
 
 	tx.Commit()
+}
+
+func TestSelectQuoteWeekByCodeDate(t *testing.T) {
+	_assert := assert.New(t)
+
+	tx, _ := db.MySQL.Begin()
+	_, err := DeleteQuoteWeekByCodesDate(tx, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
+	_assert.Nil(err)
+	tx.Commit()
+
+	tx, _ = db.MySQL.Begin()
+	affected, err := InsertQuoteWeekMany(tx, []*QuoteWeek{qw1, qw2})
+	_assert.Nil(err)
+	_assert.Equal(int64(2), affected)
+	tx.Commit()
+
+	quotes, err := SelectQuoteWeekByCodeDate(db.MySQL, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
+	_assert.Nil(err)
+	_assert.Equal(2, len(quotes))
+}
+
+func TestSelectQuoteWeekLatestByCodeDate(t *testing.T) {
+	_assert := assert.New(t)
+
+	tx, _ := db.MySQL.Begin()
+	_, err := DeleteQuoteWeekByCodesDate(tx, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
+	_assert.Nil(err)
+	tx.Commit()
+
+	tx, _ = db.MySQL.Begin()
+	affected, err := InsertQuoteWeekMany(tx, []*QuoteWeek{qw1, qw2})
+	_assert.Nil(err)
+	_assert.Equal(int64(2), affected)
+	tx.Commit()
+
+	quotes, err := SelectQuoteWeekLatestByCodeDate(db.MySQL, qw2.Code, endDate.Format("2006-01-02"), 20)
+	_assert.Nil(err)
+	_assert.Equal(1, len(quotes))
 }
