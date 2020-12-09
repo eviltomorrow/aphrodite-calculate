@@ -26,7 +26,6 @@ func TestIsyncStockFromMongoDBToMySQL(t *testing.T) {
 }
 
 func TestSyncStockAllFromMongoDBToMySQL(t *testing.T) {
-	// _assert := assert.New(t)
 	SyncStockAllFromMongoDBToMySQL()
 }
 

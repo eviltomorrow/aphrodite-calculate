@@ -58,7 +58,7 @@ create table `aphrodite`.`task_record` (
     `code` CHAR(8) NOT NULL COMMENT '股票代码',
     `date` TIMESTAMP NOT NULL COMMENT '日期',
     `completed` BOOLEAN NOT NULL COMMENT '是否完成',
-    `desc` TEXT NOT NULL COMMENT '描述',
+    `msg` TEXT NOT NULL COMMENT '描述',
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );

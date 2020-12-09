@@ -52,13 +52,6 @@ func TestSelectStockListForMongoDB(t *testing.T) {
 	_assert.Nil(err)
 	_assert.Equal(30, len(stocks))
 
-	// total 4143
-	offset = 4140
-	limit = 30
-	stocks, err = SelectStockManyForMongoDB(db.MongoDB, offset, limit, "")
-	_assert.Nil(err)
-	_assert.Equal(3, len(stocks))
-
 	offset = 4200
 	limit = 30
 	stocks, err = SelectStockManyForMongoDB(db.MongoDB, offset, limit, "")

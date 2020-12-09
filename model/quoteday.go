@@ -138,7 +138,7 @@ func InsertQuoteDayMany(db db.ExecMySQL, quotes []*QuoteDay) (int64, error) {
 	defer cannel()
 
 	var fields = make([]string, 0, len(quotes))
-	var args = make([]interface{}, 0, 3*len(quotes))
+	var args = make([]interface{}, 0, 9*len(quotes))
 	for _, quote := range quotes {
 		fields = append(fields, "(?, ?, ?, ?, ?, ?, ?, ?, ?, now(), null)")
 		args = append(args, quote.Code)
