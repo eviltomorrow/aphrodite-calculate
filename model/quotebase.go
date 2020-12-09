@@ -2,27 +2,92 @@ package model
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+	"strings"
 
 	jsoniter "github.com/json-iterator/go"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// QueryQuoteBaseOne query quote base one
-func QueryQuoteBaseOne(db *mongo.Client, where map[string]interface{}) (*QuoteBase, error) {
-	var collection = db.Database(MongodbDatabaseName).Collection(CollectionNameQuote)
+// QueryQuoteBaseCurrentCodeLimit2 query quote base limit 2
+func QueryQuoteBaseCurrentCodeLimit2(db *mongo.Client, code string, date string) ([]*QuoteBase, error) {
+	if strings.Count(date, "-") != 2 {
+		return nil, fmt.Errorf("Invalid date, date: %s", date)
+	}
+
+	var year = strings.Split(date, "-")[0]
+
+	var collection = db.Database(MongodbDatabaseName).Collection(fmt.Sprintf(CollectionNameQuote, year))
 	ctx, cancel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cancel()
 
-	result := collection.FindOne(ctx, where)
-	if result.Err() != nil {
-		return nil, result.Err()
-	}
-
-	var quote = &QuoteBase{}
-	if err := result.Decode(quote); err != nil {
+	var option = options.Find()
+	option.SetSort(bson.D{{Key: "date", Value: 1}})
+	option.SetLimit(2)
+	cur, err := collection.Find(ctx, bson.M{
+		"code": code,
+		"date": bson.M{
+			"$gte": date,
+		},
+	}, option)
+	if err != nil {
 		return nil, err
 	}
-	return quote, nil
+	defer cur.Close(ctx)
+
+	var quotes = make([]*QuoteBase, 0, 2)
+	for cur.Next(ctx) {
+		var quote = &QuoteBase{}
+		if err := cur.Decode(quote); err != nil {
+			return nil, err
+		}
+		quotes = append(quotes, quote)
+	}
+	if cur.Err() != nil {
+		return nil, cur.Err()
+	}
+
+	if len(quotes) == 2 {
+		return quotes, nil
+	}
+
+	yearInt, err := strconv.Atoi(year)
+	if err != nil {
+		return nil, fmt.Errorf("Parse year to int failure, nest error: %v", err)
+	}
+
+	year = fmt.Sprintf("%d", yearInt+1)
+	collection = db.Database(MongodbDatabaseName).Collection(fmt.Sprintf(CollectionNameQuote, year))
+
+	option = options.Find()
+	option.SetSort(bson.D{{Key: "date", Value: 1}})
+	option.SetLimit(1)
+	cur, err = collection.Find(ctx, bson.M{
+		"code": code,
+		"date": bson.M{
+			"$gte": date,
+		},
+	}, option)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		var quote = &QuoteBase{}
+		if err := cur.Decode(quote); err != nil {
+			return nil, err
+		}
+		quotes = append(quotes, quote)
+	}
+	if cur.Err() != nil {
+		return nil, cur.Err()
+	}
+
+	return quotes, nil
 }
 
 // QuoteBase quote base

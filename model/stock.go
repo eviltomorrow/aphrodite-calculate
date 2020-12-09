@@ -65,22 +65,36 @@ func UpdateStockByCodeForMySQL(db db.ExecMySQL, code string, stock *Stock) (int6
 	return result.RowsAffected()
 }
 
-// SelectStockOneForMySQL select stock one for mysql
-func SelectStockOneForMySQL(db db.ExecMySQL, code string) (*Stock, error) {
+// SelectStockManyByCodesForMySQL select stock list with code for mysql
+func SelectStockManyByCodesForMySQL(db db.ExecMySQL, codes []string) ([]*Stock, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = `select code, name, source, create_timestamp, modify_timestamp from stock where code = ?`
-	row := db.QueryRowContext(ctx, _sql, code)
-	// if err := row.Err(); err != nil {
-	// 	return nil, err
-	// }
-
-	var stock = &Stock{}
-	if err := row.Scan(&stock.Code, &stock.Name, &stock.Source, &stock.CreateTimestamp, &stock.ModifyTimestamp); err != nil {
+	var feilds = make([]string, 0, len(codes))
+	var args = make([]interface{}, 0, len(codes))
+	for _, code := range codes {
+		feilds = append(feilds, "?")
+		args = append(args, code)
+	}
+	var _sql = fmt.Sprintf(`select code, name, source, create_timestamp, modify_timestamp from stock where code in (%s)`, strings.Join(feilds, ","))
+	rows, err := db.QueryContext(ctx, _sql, args...)
+	if err != nil {
 		return nil, err
 	}
-	return stock, nil
+
+	var stocks = make([]*Stock, 0, len(codes))
+	for rows.Next() {
+		var stock = Stock{}
+		if err := rows.Scan(&stock.Code, &stock.Name, &stock.Source, &stock.CreateTimestamp, &stock.ModifyTimestamp); err != nil {
+			return nil, err
+		}
+		stocks = append(stocks, &stock)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return stocks, nil
 }
 
 // SelectStockManyForMySQL select stock list for mysql

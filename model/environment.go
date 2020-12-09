@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -17,6 +16,6 @@ var (
 // mongodb
 var (
 	MongodbDatabaseName = "aphrodite"
-	CollectionNameQuote = fmt.Sprintf("quote_%s", time.Now().Format("2006"))
+	CollectionNameQuote = "quote_%s"
 	CollectionNameStock = "stock"
 )

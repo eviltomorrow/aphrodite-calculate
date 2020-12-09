@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"testing"
 	"time"
 
@@ -34,27 +33,7 @@ var s3 = &Stock{
 }
 
 func TestInsertStockManyForMySQL(t *testing.T) {
-	_assert := assert.New(t)
-
-	_, err := SelectStockOneForMySQL(db.MySQL, s1.Code)
-	if err != sql.ErrNoRows {
-		tx, err := db.MySQL.Begin()
-		if err != nil {
-			t.Fatalf("Error: %v\r\n", err)
-		}
-		_, err = UpdateStockByCodeForMySQL(tx, s1.Code, s1)
-		_assert.Nil(err)
-		tx.Commit()
-	} else {
-		tx, err := db.MySQL.Begin()
-		if err != nil {
-			t.Fatalf("Error: %v\r\n", err)
-		}
-		affected, err := InsertStockManyForMySQL(tx, []*Stock{s1})
-		_assert.Nil(err)
-		_assert.Equal(int64(1), affected)
-		tx.Commit()
-	}
+	// _assert := assert.New(t)
 
 }
 
@@ -108,21 +87,15 @@ func TestSelectStockListForMongoDB(t *testing.T) {
 }
 
 func BenchmarkSelectStockListForMongoDB(b *testing.B) {
-	var offset int64 = 4100
-	var limit int64 = 30
-
-	stocks, err := SelectStockManyForMongoDB(db.MongoDB, offset, limit, "")
-	if err != nil {
-		b.Fatalf("Error: %v", err)
-	}
-
-	var objectID = ""
-	if len(stocks) != 0 {
-		objectID = stocks[len(stocks)-1].ObjectID
-	}
-
+	var offset int64 = 0
+	var limit int64 = 100
+	var objectID string
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		SelectStockManyForMongoDB(db.MongoDB, offset, limit, objectID)
+		stocks, _ := SelectStockManyForMongoDB(db.MongoDB, offset, limit, objectID)
+		if len(stocks) != 0 {
+			objectID = stocks[len(stocks)-1].ObjectID
+		}
+		offset += limit
 	}
 }

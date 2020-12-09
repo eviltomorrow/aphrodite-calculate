@@ -7,41 +7,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueryQuoteOne(t *testing.T) {
+func TestQueryQuoteBaseCurrentCodeLimit2(t *testing.T) {
 	_assert := assert.New(t)
 
-	// right
-	var where = map[string]interface{}{
-		"code": "sz000001",
-		"date": "2020-09-15",
-	}
-
-	quote, err := QueryQuoteBaseOne(db.MongoDB, where)
+	var code = "sz000001"
+	var date = "2020-12-04"
+	quotes, err := QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	_assert.Nil(err)
-	_assert.Equal("sz000001", quote.Code)
-	_assert.Equal("2020-09-15", quote.Date)
-	t.Logf("quote: %s", quote.String())
+	_assert.Equal(2, len(quotes))
 
-	// no data
-	where = map[string]interface{}{
-		"code": "no000001",
-		"date": "2020-09-15",
+	for _, quote := range quotes {
+		t.Logf("Quote: %s\r\n", quote.String())
 	}
-	quote, err = QueryQuoteBaseOne(db.MongoDB, where)
-	_assert.NotNil(err)
-	_assert.Nil(quote)
+
+	code = "sz000001"
+	date = "2020-12-08"
+	quotes, err = QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	_assert.Nil(err)
+	_assert.Equal(1, len(quotes))
+
+	code = "sz000001"
+	date = "2020-12-09"
+	quotes, err = QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	_assert.Nil(err)
+	_assert.Equal(0, len(quotes))
+
+	code = "sz000001"
+	date = "2020-12-31"
+	quotes, err = QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	_assert.Nil(err)
+	_assert.Equal(0, len(quotes))
 
 }
 
 func BenchmarkQueryQuoteBaseOne(b *testing.B) {
 	// right
-	var where = map[string]interface{}{
-		"code": "sz000001",
-		"date": "2020-09-15",
-	}
+	var code = "sz000001"
+	var date = "2020-12-05"
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		QueryQuoteBaseOne(db.MongoDB, where)
+		QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	}
 }

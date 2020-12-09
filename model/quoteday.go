@@ -62,14 +62,14 @@ func SelectQuoteDayByCodesDate(db db.ExecMySQL, codes []string, date string) ([]
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var fields = make([]string, 0, len(codes))
+	var feilds = make([]string, 0, len(codes))
 	var args = make([]interface{}, 0, len(codes))
 	for _, code := range codes {
-		fields = append(fields, "?")
+		feilds = append(feilds, "?")
 		args = append(args, code)
 	}
 	args = append(args, date)
-	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code in (%s) and date = ?", strings.Join(fields, ","))
+	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code in (%s) and date = ?", strings.Join(feilds, ","))
 
 	rows, err := db.QueryContext(ctx, _sql, args...)
 	if err != nil {
