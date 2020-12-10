@@ -68,7 +68,7 @@ func TestUpdateTaskRecordCompleted(t *testing.T) {
 		t.Fatalf("Error: %v", err)
 	}
 	for _, record := range records {
-		UpdateTaskRecordCompleted(tx, record.ID, true)
+		UpdateTaskRecordCompleted(tx, []int64{record.ID})
 	}
 
 	tx.Commit()

@@ -3,3 +3,5 @@ model/*.test
 
 service/*.profile
 service/*.test
+
+aphrodite-calculate.runtime

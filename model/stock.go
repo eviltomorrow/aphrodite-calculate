@@ -59,12 +59,7 @@ func UpdateStockByCodeForMySQL(db db.ExecMySQL, code string, stock *Stock) (int6
 	defer cannel()
 
 	var _sql = `update stock set name = ?, source = ?, modify_timestamp = now() where code = ?`
-	var args = []interface{}{
-		stock.Name,
-		stock.Source,
-		code,
-	}
-	result, err := db.ExecContext(ctx, _sql, args...)
+	result, err := db.ExecContext(ctx, _sql, stock.Name, stock.Source, code)
 	if err != nil {
 		return 0, err
 	}

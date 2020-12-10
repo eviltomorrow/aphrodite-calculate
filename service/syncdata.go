@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/eviltomorrow/aphrodite-base/zlog"
 	"go.uber.org/zap"
 
+	"github.com/eviltomorrow/aphrodite-base/tools"
+	"github.com/eviltomorrow/aphrodite-base/zlog"
+	"github.com/eviltomorrow/aphrodite-base/ztime"
 	"github.com/eviltomorrow/aphrodite-calculate/db"
 	"github.com/eviltomorrow/aphrodite-calculate/model"
 )
@@ -110,13 +112,13 @@ func buildQuoteDayFromMongoDBToMySQL(code string, date string) (*model.QuoteDay,
 	}
 
 	if len(quotes) != 2 {
-		zlog.Warn("No enough quote data", zap.String("code", code), zap.String("date", date))
+		zlog.Warn("[QuoteBase]No enough quote data", zap.String("code", code), zap.String("date", date))
 		return nil, nil
 	}
 
 	var firstDayQuote = quotes[0]
 	if firstDayQuote.Date != date {
-		zlog.Warn("No exist quote data", zap.String("code", code), zap.String("date", date))
+		zlog.Warn("[QuoteBase]No exist quote data", zap.String("code", code), zap.String("date", date))
 		return nil, nil
 	}
 
@@ -162,10 +164,10 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) error {
 			if err != nil {
 				return err
 			}
-			if quote == nil {
-				continue
+			if quote != nil {
+				quotes = append(quotes, quote)
 			}
-			quotes = append(quotes, quote)
+
 		}
 
 		if len(quotes) == 0 {
@@ -189,6 +191,7 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) error {
 		}
 
 		if err = tx.Commit(); err != nil {
+			tx.Rollback()
 			return err
 		}
 
@@ -197,15 +200,75 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) error {
 	return nil
 }
 
-func buildQuoteWeekFromQuoteDay(code string, beginDate, endDate string) (*model.QuoteWeek, error) {
-	// model.selec
-	return nil, nil
+func buildQuoteWeekFromQuoteDay(code string, begin, end time.Time) (*model.QuoteWeek, error) {
+	quotes, err := model.SelectQuoteDayByCodeDate(db.MySQL, code, begin.Format("2006-01-02"), end.Format("2006-01-02"))
+	if err != nil {
+		return nil, err
+	}
+
+	if len(quotes) == 0 {
+		zlog.Warn("[QuoteDay]No exist quote data", zap.String("code", code), zap.Time("begin", begin), zap.Time("end", end))
+		return nil, nil
+	}
+
+	var quoteWeek = &model.QuoteWeek{
+		Code:       code,
+		Open:       quotes[0].Open,
+		Close:      quotes[len(quotes)-1].Close,
+		DateBegin:  begin,
+		DateEnd:    end,
+		WeekOfYear: ztime.YearWeek(begin),
+	}
+	var numFloat64 = make([]float64, 0, len(quotes))
+	var numInt64 = make([]int64, 0, len(quotes))
+
+	// cal high
+	numFloat64 = numFloat64[:0]
+	for _, quote := range quotes {
+		numFloat64 = append(numFloat64, quote.High)
+	}
+	quoteWeek.High = tools.CalcalateMaxFloat64(numFloat64)
+
+	// cal low
+	numFloat64 = numFloat64[:0]
+	for _, quote := range quotes {
+		numFloat64 = append(numFloat64, quote.Low)
+	}
+	quoteWeek.Low = tools.CalcalateMinFloat64(numFloat64)
+
+	// cal volume
+	numInt64 = numInt64[:0]
+	for _, quote := range quotes {
+		numInt64 = append(numInt64, quote.Volume)
+	}
+	quoteWeek.Volume = tools.CalculateSumInt64(numInt64)
+
+	// cal account
+	numFloat64 = numFloat64[:0]
+	for _, quote := range quotes {
+		numFloat64 = append(numFloat64, quote.Account)
+	}
+	quoteWeek.Account = tools.CalculateSumFloat64(numFloat64)
+
+	return quoteWeek, nil
 }
 
 // SyncQuoteWeekFromMongoDBToMySQL sync quoteweek from mongodb to mysql
 func SyncQuoteWeekFromMongoDBToMySQL(date string) error {
 	var offset int64 = 0
 	var limit int64 = 50
+
+	end, err := time.ParseInLocation("2006-01-02", date, time.Local)
+	if err != nil {
+		return err
+	}
+
+	if end.Weekday() != time.Friday {
+		return fmt.Errorf("Date is not Friday, date: %s", date)
+	}
+
+	begin := end.AddDate(0, 0, -5)
+
 	for {
 		stocks, err := model.SelectStockManyForMySQL(db.MySQL, offset, limit)
 		if err != nil {
@@ -220,8 +283,41 @@ func SyncQuoteWeekFromMongoDBToMySQL(date string) error {
 		var codes = make([]string, 0, limit)
 		for _, stock := range stocks {
 			codes = append(codes, stock.Code)
-			quotes = append(quotes, nil)
+			quote, err := buildQuoteWeekFromQuoteDay(stock.Code, begin, end)
+			if err != nil {
+				return err
+			}
+			if quote != nil {
+				quotes = append(quotes, quote)
+			}
 		}
+
+		if len(quotes) == 0 {
+			continue
+		}
+
+		tx, err := db.MySQL.Begin()
+		if err != nil {
+			return err
+		}
+		_, err = model.DeleteQuoteWeekByCodesDate(tx, codes, end.Format("2006-01-02"))
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		_, err = model.InsertQuoteWeekMany(tx, quotes)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		if err = tx.Commit(); err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		offset += limit
 	}
 	return nil
 }

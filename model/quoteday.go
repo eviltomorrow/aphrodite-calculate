@@ -12,7 +12,7 @@ import (
 )
 
 // SelectQuoteDayByCodeDate select quoteday
-func SelectQuoteDayByCodeDate(db db.ExecMySQL, code string, begin, end string) ([]QuoteDay, error) {
+func SelectQuoteDayByCodeDate(db db.ExecMySQL, code string, begin, end string) ([]*QuoteDay, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
@@ -23,7 +23,7 @@ func SelectQuoteDayByCodeDate(db db.ExecMySQL, code string, begin, end string) (
 		return nil, err
 	}
 
-	var quotes = make([]QuoteDay, 0, 16)
+	var quotes = make([]*QuoteDay, 0, 16)
 	for rows.Next() {
 		var quote = QuoteDay{}
 		if err := rows.Scan(
@@ -42,7 +42,7 @@ func SelectQuoteDayByCodeDate(db db.ExecMySQL, code string, begin, end string) (
 		); err != nil {
 			return nil, err
 		}
-		quotes = append(quotes, quote)
+		quotes = append(quotes, &quote)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ type QuoteDay struct {
 	Close           float64      `json:"close"`
 	High            float64      `json:"high"`
 	Low             float64      `json:"low"`
-	Volume          uint64       `json:"volume"`
+	Volume          int64        `json:"volume"`
 	Account         float64      `json:"account"`
 	Date            time.Time    `json:"date"`
 	DayOfYear       int          `json:"day_of_year"`

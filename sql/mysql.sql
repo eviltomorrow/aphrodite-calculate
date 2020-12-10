@@ -12,7 +12,6 @@ create table `aphrodite`.`stock` (
     PRIMARY KEY(`code`)
 );
 
-
 -- quote_day 表
 drop table if exists `aphrodite`.`quote_day`;
 create table `aphrodite`.`quote_day` (
@@ -61,3 +60,4 @@ create table `aphrodite`.`task_record` (
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );
 create index idx_date_completed on `aphrodite`.`task_record`(`date`);
+

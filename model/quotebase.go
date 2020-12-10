@@ -100,7 +100,7 @@ type QuoteBase struct {
 	YesterdayClosed float64 `json:"yesterday_closed" bson:"yesterday_closed"` // 昨日收盘价格
 	High            float64 `json:"high" bson:"high"`                         // 最高价
 	Low             float64 `json:"low" bson:"low"`                           // 最低价
-	Volume          uint64  `json:"volume" bson:"volume"`                     // 成交量
+	Volume          int64   `json:"volume" bson:"volume"`                     // 成交量
 	Account         float64 `json:"account" bson:"account"`                   // 成交额
 	Date            string  `json:"date" bson:"date"`                         // 日期
 	Suspend         string  `json:"suspend" bson:"suspend"`                   // 停盘状态

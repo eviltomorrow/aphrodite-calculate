@@ -45,12 +45,18 @@ func SelectTaskRecordMany(db db.ExecMySQL, date string) ([]*TaskRecord, error) {
 }
 
 // UpdateTaskRecordCompleted update task record by id
-func UpdateTaskRecordCompleted(db db.ExecMySQL, id int64, completed bool) (int64, error) {
+func UpdateTaskRecordCompleted(db db.ExecMySQL, ids []int64) (int64, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), UpdateTimeout)
 	defer cannel()
 
-	var _sql = "update task_record set completed = ?, modify_timestamp = now() where id = ?"
-	result, err := db.ExecContext(ctx, _sql, completed, id)
+	var fields = make([]string, 0, len(ids))
+	var args = make([]interface{}, 0, len(ids))
+	for _, id := range ids {
+		fields = append(fields, "?")
+		args = append(args, id)
+	}
+	var _sql = fmt.Sprintf("update task_record set completed = true, modify_timestamp = now() where id in (%s)", strings.Join(fields, ","))
+	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
 	}
