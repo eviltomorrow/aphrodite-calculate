@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/eviltomorrow/aphrodite-calculate/db"
@@ -9,27 +8,21 @@ import (
 )
 
 var t1 = &TaskRecord{
-	Name:      "同步日数据",
-	Code:      "sz000001",
+	Method:    "SYNC_QUOTEDAY",
 	Date:      "2020-12-10",
 	Completed: false,
-	Msg:       "",
 }
 
 var t2 = &TaskRecord{
-	Name:      "同步日数据",
-	Code:      "sz000002",
+	Method:    "SYNC_QUOTEDAY",
 	Date:      "2020-12-10",
 	Completed: false,
-	Msg:       "",
 }
 
 var t3 = &TaskRecord{
-	Name:      "同步日数据",
-	Code:      "sh000536",
+	Method:    "SYNC_QUOTEWEEK",
 	Date:      "2020-12-10",
 	Completed: false,
-	Msg:       "",
 }
 
 func TestInsertTaskRecordMany(t *testing.T) {
@@ -51,16 +44,49 @@ func TestInsertTaskRecordMany(t *testing.T) {
 	var records = make([]*TaskRecord, 0, 30)
 	for i := 10; i < 40; i++ {
 		var t = &TaskRecord{
-			Name: "",
-			Date: "2020-12-10",
+			Method: "SYNC_QUOTEDAY",
+			Date:   "2020-12-10",
 		}
-
-		t.Code = fmt.Sprintf("sh6000%d", i)
 		records = append(records, t)
 	}
 
 	affected, err = InsertTaskRecordMany(tx, records)
 	_assert.Nil(err)
 	_assert.Equal(int64(30), affected)
+	tx.Commit()
+}
 
+func TestUpdateTaskRecordCompleted(t *testing.T) {
+	_assert := assert.New(t)
+
+	var date = "2020-12-10"
+	records, err := QueryTaskRecordMany(db.MySQL, date)
+	_assert.Nil(err)
+
+	tx, err := db.MySQL.Begin()
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+	for _, record := range records {
+		UpdateTaskRecordCompleted(tx, record.ID, true)
+	}
+
+	tx.Commit()
+}
+
+func BenchmarkInsertTaskRecordMany(b *testing.B) {
+	var records = []*TaskRecord{
+		t1, t2, t3,
+	}
+
+	tx, err := db.MySQL.Begin()
+	if err != nil {
+		b.Fatalf("Error: %v\r\n", err)
+	}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		InsertTaskRecordMany(tx, records)
+	}
+	tx.Commit()
 }

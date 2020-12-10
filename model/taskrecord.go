@@ -10,19 +10,50 @@ import (
 	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
-// SelectTaskRecordMany select task record many
-func SelectTaskRecordMany(db db.ExecMySQL, complete bool, offset int64, limit int64) ([]*TaskRecord, error) {
-	return nil, nil
+// QueryTaskRecordMany select task record many
+func QueryTaskRecordMany(db db.ExecMySQL, date string) ([]*TaskRecord, error) {
+	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
+	defer cannel()
+
+	var _sql = "select id, method, date, completed, create_timestamp, modify_timestamp from task_record where date = ?"
+	rows, err := db.QueryContext(ctx, _sql, date)
+	if err != nil {
+		return nil, err
+	}
+
+	var records = make([]*TaskRecord, 0, 16)
+	for rows.Next() {
+		var record = TaskRecord{}
+		if err := rows.Scan(
+			&record.ID,
+			&record.Method,
+			&record.Date,
+			&record.Completed,
+			&record.CreateTimestamp,
+			&record.ModifyTimestamp,
+		); err != nil {
+			return nil, err
+		}
+		records = append(records, &record)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return records, nil
 }
 
-// DeleteTaskRecordByCodesDate delete task record by codes and date
-func DeleteTaskRecordByCodesDate(db db.ExecMySQL, codes []string, date string) (int64, error) {
-	return 0, nil
-}
+// UpdateTaskRecordCompleted update task record by id
+func UpdateTaskRecordCompleted(db db.ExecMySQL, id int64, completed bool) (int64, error) {
+	ctx, cannel := context.WithTimeout(context.Background(), UpdateTimeout)
+	defer cannel()
 
-// UpdateTaskRecordByID update task record by id
-func UpdateTaskRecordByID(db db.ExecMySQL, id int64, record *TaskRecord) (int64, error) {
-	return 0, nil
+	var _sql = "update task_record set completed = ?, modify_timestamp = now() where id = ?"
+	result, err := db.ExecContext(ctx, _sql, completed, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 // InsertTaskRecordMany insert into task record many
@@ -35,16 +66,14 @@ func InsertTaskRecordMany(db db.ExecMySQL, records []*TaskRecord) (int64, error)
 	defer cannel()
 
 	var fields = make([]string, 0, len(records))
-	var args = make([]interface{}, 0, 3*len(records))
+	var args = make([]interface{}, 0, 2*len(records))
 	for _, record := range records {
-		fields = append(fields, "(?, ?, ?, false, '', now(), null)")
-		args = append(args, record.Name)
-		args = append(args, record.Code)
+		fields = append(fields, "(?, ?, false, now(), null)")
+		args = append(args, record.Method)
 		args = append(args, record.Date)
 	}
 
 	var _sql = fmt.Sprintf("insert into task_record (%s) values %s", strings.Join(taskRecordFields, ","), strings.Join(fields, ","))
-	fmt.Println(_sql)
 	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
@@ -55,33 +84,27 @@ func InsertTaskRecordMany(db db.ExecMySQL, records []*TaskRecord) (int64, error)
 //
 const (
 	TaskRecordFieldID              = "id"
-	TaskRecordFieldName            = "name"
-	TaskRecordFieldCode            = "code"
+	TaskRecordFieldMethod          = "method"
 	TaskRecordFieldDate            = "date"
 	TaskRecordFieldCompleted       = "completed"
-	TaskRecordFieldMsg             = "msg"
 	TaskRecordFieldCreateTimestamp = "create_timestamp"
 	TaskRecordFieldModifyTimestamp = "modify_timestamp"
 )
 
 var taskRecordFields = []string{
-	TaskRecordFieldName,
-	TaskRecordFieldCode,
+	TaskRecordFieldMethod,
 	TaskRecordFieldDate,
 	TaskRecordFieldCompleted,
-	TaskRecordFieldMsg,
 	TaskRecordFieldCreateTimestamp,
 	TaskRecordFieldModifyTimestamp,
 }
 
 // TaskRecord record
 type TaskRecord struct {
-	ID              int64        `json:"id"`   // id
-	Name            string       `json:"name"` // 名称
-	Code            string       `json:"code"`
+	ID              int64        `json:"id"`     // id
+	Method          string       `json:"method"` // 方式
 	Date            string       `json:"date"`
 	Completed       bool         `json:"completed"` // 完成
-	Msg             string       `json:"msg"`       // 描述
 	CreateTimestamp time.Time    `json:"create_timestamp"`
 	ModifyTimestamp sql.NullTime `json:"modify_timestamp"`
 }

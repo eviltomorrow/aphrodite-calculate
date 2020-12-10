@@ -110,15 +110,15 @@ func DeleteQuoteWeekByCodesDate(db db.ExecMySQL, codes []string, date string) (i
 	ctx, cannel := context.WithTimeout(context.Background(), DeleteTimeout)
 	defer cannel()
 
-	var feilds = make([]string, 0, len(codes))
+	var fields = make([]string, 0, len(codes))
 	var args = make([]interface{}, 0, len(codes)+1)
 	for _, code := range codes {
-		feilds = append(feilds, "?")
+		fields = append(fields, "?")
 		args = append(args, code)
 	}
 	args = append(args, date)
 
-	var _sql = fmt.Sprintf("delete from quote_week where code in (%s) and date_end = ?", strings.Join(feilds, ","))
+	var _sql = fmt.Sprintf("delete from quote_week where code in (%s) and date_end = ?", strings.Join(fields, ","))
 	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
@@ -151,7 +151,7 @@ func InsertQuoteWeekMany(db db.ExecMySQL, quotes []*QuoteWeek) (int64, error) {
 		args = append(args, quote.WeekOfYear)
 	}
 
-	var _sql = fmt.Sprintf("insert into quote_week (%s) values %s", strings.Join(quoteWeekFeilds, ","), strings.Join(fields, ","))
+	var _sql = fmt.Sprintf("insert into quote_week (%s) values %s", strings.Join(quoteWeekFields, ","), strings.Join(fields, ","))
 	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
@@ -161,33 +161,33 @@ func InsertQuoteWeekMany(db db.ExecMySQL, quotes []*QuoteWeek) (int64, error) {
 
 //
 const (
-	QuoteWeekFeildCode            = "code"
-	QuoteWeekFeildOpen            = "open"
-	QuoteWeekFeildClose           = "close"
-	QuoteWeekFeildHigh            = "high"
-	QuoteWeekFeildLow             = "low"
-	QuoteWeekFeildVolume          = "volume"
-	QuoteWeekFeildAccount         = "account"
-	QuoteWeekFeildDateBegin       = "date_begin"
-	QuoteWeekFeildDateEnd         = "date_end"
-	QuoteWeekFeildWeekOfYear      = "week_of_year"
-	QuoteWeekFeildCreateTimestamp = "create_timestamp"
-	QuoteWeekFeildModifyTimestamp = "modify_timestamp"
+	QuoteWeekFieldCode            = "code"
+	QuoteWeekFieldOpen            = "open"
+	QuoteWeekFieldClose           = "close"
+	QuoteWeekFieldHigh            = "high"
+	QuoteWeekFieldLow             = "low"
+	QuoteWeekFieldVolume          = "volume"
+	QuoteWeekFieldAccount         = "account"
+	QuoteWeekFieldDateBegin       = "date_begin"
+	QuoteWeekFieldDateEnd         = "date_end"
+	QuoteWeekFieldWeekOfYear      = "week_of_year"
+	QuoteWeekFieldCreateTimestamp = "create_timestamp"
+	QuoteWeekFieldModifyTimestamp = "modify_timestamp"
 )
 
-var quoteWeekFeilds = []string{
-	QuoteWeekFeildCode,
-	QuoteWeekFeildOpen,
-	QuoteWeekFeildClose,
-	QuoteWeekFeildHigh,
-	QuoteWeekFeildLow,
-	QuoteWeekFeildVolume,
-	QuoteWeekFeildAccount,
-	QuoteWeekFeildDateBegin,
-	QuoteWeekFeildDateEnd,
-	QuoteWeekFeildWeekOfYear,
-	QuoteWeekFeildCreateTimestamp,
-	QuoteWeekFeildModifyTimestamp,
+var quoteWeekFields = []string{
+	QuoteWeekFieldCode,
+	QuoteWeekFieldOpen,
+	QuoteWeekFieldClose,
+	QuoteWeekFieldHigh,
+	QuoteWeekFieldLow,
+	QuoteWeekFieldVolume,
+	QuoteWeekFieldAccount,
+	QuoteWeekFieldDateBegin,
+	QuoteWeekFieldDateEnd,
+	QuoteWeekFieldWeekOfYear,
+	QuoteWeekFieldCreateTimestamp,
+	QuoteWeekFieldModifyTimestamp,
 }
 
 // QuoteWeek quote week

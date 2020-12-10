@@ -39,7 +39,7 @@ func InsertStockManyForMySQL(db db.ExecMySQL, stocks []*Stock) (int64, error) {
 		args = append(args, stock.Source)
 	}
 
-	var _sql = fmt.Sprintf("insert into stock (%s) values %s", strings.Join(stockFeilds, ","), strings.Join(fields, ","))
+	var _sql = fmt.Sprintf("insert into stock (%s) values %s", strings.Join(stockFields, ","), strings.Join(fields, ","))
 	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
@@ -70,13 +70,13 @@ func SelectStockManyByCodesForMySQL(db db.ExecMySQL, codes []string) ([]*Stock, 
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var feilds = make([]string, 0, len(codes))
+	var fields = make([]string, 0, len(codes))
 	var args = make([]interface{}, 0, len(codes))
 	for _, code := range codes {
-		feilds = append(feilds, "?")
+		fields = append(fields, "?")
 		args = append(args, code)
 	}
-	var _sql = fmt.Sprintf(`select code, name, source, create_timestamp, modify_timestamp from stock where code in (%s)`, strings.Join(feilds, ","))
+	var _sql = fmt.Sprintf(`select code, name, source, create_timestamp, modify_timestamp from stock where code in (%s)`, strings.Join(fields, ","))
 	rows, err := db.QueryContext(ctx, _sql, args...)
 	if err != nil {
 		return nil, err
@@ -173,19 +173,19 @@ func SelectStockManyForMongoDB(db *mongo.Client, offset, limit int64, lastID str
 
 //
 const (
-	StockFeildCode            = "code"
-	StockFeildName            = "name"
-	StockFeildSource          = "source"
-	StockFeildCreateTimestamp = "create_timestamp"
-	StockFeildModifyTimestamp = "modify_timestamp"
+	StockFieldCode            = "code"
+	StockFieldName            = "name"
+	StockFieldSource          = "source"
+	StockFieldCreateTimestamp = "create_timestamp"
+	StockFieldModifyTimestamp = "modify_timestamp"
 )
 
-var stockFeilds = []string{
-	StockFeildCode,
-	StockFeildName,
-	StockFeildSource,
-	StockFeildCreateTimestamp,
-	StockFeildModifyTimestamp,
+var stockFields = []string{
+	StockFieldCode,
+	StockFieldName,
+	StockFieldSource,
+	StockFieldCreateTimestamp,
+	StockFieldModifyTimestamp,
 }
 
 // Time time

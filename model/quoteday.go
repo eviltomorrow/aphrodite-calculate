@@ -62,14 +62,14 @@ func SelectQuoteDayByCodesDate(db db.ExecMySQL, codes []string, date string) ([]
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var feilds = make([]string, 0, len(codes))
+	var fields = make([]string, 0, len(codes))
 	var args = make([]interface{}, 0, len(codes))
 	for _, code := range codes {
-		feilds = append(feilds, "?")
+		fields = append(fields, "?")
 		args = append(args, code)
 	}
 	args = append(args, date)
-	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code in (%s) and date = ?", strings.Join(feilds, ","))
+	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code in (%s) and date = ?", strings.Join(fields, ","))
 
 	rows, err := db.QueryContext(ctx, _sql, args...)
 	if err != nil {
@@ -112,15 +112,15 @@ func DeleteQuoteDayByCodesDate(db db.ExecMySQL, codes []string, date string) (in
 	ctx, cannel := context.WithTimeout(context.Background(), DeleteTimeout)
 	defer cannel()
 
-	var feilds = make([]string, 0, len(codes))
+	var fields = make([]string, 0, len(codes))
 	var args = make([]interface{}, 0, len(codes)+1)
 	for _, code := range codes {
-		feilds = append(feilds, "?")
+		fields = append(fields, "?")
 		args = append(args, code)
 	}
 	args = append(args, date)
 
-	var _sql = fmt.Sprintf("delete from quote_day where code in (%s) and date = ?", strings.Join(feilds, ","))
+	var _sql = fmt.Sprintf("delete from quote_day where code in (%s) and date = ?", strings.Join(fields, ","))
 	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
@@ -152,7 +152,7 @@ func InsertQuoteDayMany(db db.ExecMySQL, quotes []*QuoteDay) (int64, error) {
 		args = append(args, quote.DayOfYear)
 	}
 
-	var _sql = fmt.Sprintf("insert into quote_day (%s) values %s", strings.Join(quoteDayFeilds, ","), strings.Join(fields, ","))
+	var _sql = fmt.Sprintf("insert into quote_day (%s) values %s", strings.Join(quoteDayFields, ","), strings.Join(fields, ","))
 	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
@@ -162,31 +162,31 @@ func InsertQuoteDayMany(db db.ExecMySQL, quotes []*QuoteDay) (int64, error) {
 
 //
 const (
-	QuoteDayFeildCode            = "code"
-	QuoteDayFeildOpen            = "open"
-	QuoteDayFeildClose           = "close"
-	QuoteDayFeildHigh            = "high"
-	QuoteDayFeildLow             = "low"
-	QuoteDayFeildVolume          = "volume"
-	QuoteDayFeildAccount         = "account"
-	QuoteDayFeildDate            = "date"
-	QuoteDayFeildDayOfYear       = "day_of_year"
-	QuoteDayFeildCreateTimestamp = "create_timestamp"
-	QuoteDayFeildModifyTimestamp = "modify_timestamp"
+	QuoteDayFieldCode            = "code"
+	QuoteDayFieldOpen            = "open"
+	QuoteDayFieldClose           = "close"
+	QuoteDayFieldHigh            = "high"
+	QuoteDayFieldLow             = "low"
+	QuoteDayFieldVolume          = "volume"
+	QuoteDayFieldAccount         = "account"
+	QuoteDayFieldDate            = "date"
+	QuoteDayFieldDayOfYear       = "day_of_year"
+	QuoteDayFieldCreateTimestamp = "create_timestamp"
+	QuoteDayFieldModifyTimestamp = "modify_timestamp"
 )
 
-var quoteDayFeilds = []string{
-	QuoteDayFeildCode,
-	QuoteDayFeildOpen,
-	QuoteDayFeildClose,
-	QuoteDayFeildHigh,
-	QuoteDayFeildLow,
-	QuoteDayFeildVolume,
-	QuoteDayFeildAccount,
-	QuoteDayFeildDate,
-	QuoteDayFeildDayOfYear,
-	QuoteDayFeildCreateTimestamp,
-	QuoteDayFeildModifyTimestamp,
+var quoteDayFields = []string{
+	QuoteDayFieldCode,
+	QuoteDayFieldOpen,
+	QuoteDayFieldClose,
+	QuoteDayFieldHigh,
+	QuoteDayFieldLow,
+	QuoteDayFieldVolume,
+	QuoteDayFieldAccount,
+	QuoteDayFieldDate,
+	QuoteDayFieldDayOfYear,
+	QuoteDayFieldCreateTimestamp,
+	QuoteDayFieldModifyTimestamp,
 }
 
 // QuoteDay quote day
@@ -197,7 +197,7 @@ type QuoteDay struct {
 	Close           float64      `json:"close"`
 	High            float64      `json:"high"`
 	Low             float64      `json:"low"`
-	Volume          int64        `json:"volume"`
+	Volume          uint64       `json:"volume"`
 	Account         float64      `json:"account"`
 	Date            time.Time    `json:"date"`
 	DayOfYear       int          `json:"day_of_year"`

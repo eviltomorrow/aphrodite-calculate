@@ -31,7 +31,7 @@ create table `aphrodite`.`quote_day` (
 );
 create index idx_date_code on `aphrodite`.`quote_day`(`date`,`code`);
 
--- stock 表
+-- quote_week 表
 drop table if exists `aphrodite`.`quote_week`;
 create table `aphrodite`.`quote_week` (
     `id` BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -50,16 +50,14 @@ create table `aphrodite`.`quote_week` (
 );
 create index idx_date_end_code on `aphrodite`.`quote_week`(`date_end`,`code`);
 
--- stock 表
+-- task_record 表
 drop table if exists `aphrodite`.`task_record`;
 create table `aphrodite`.`task_record` (
     `id` BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    `name` VARCHAR(32) NOT NULL COMMENT '任务名称',
-    `code` CHAR(8) NOT NULL COMMENT '股票代码',
+    `method` VARCHAR(32) NOT NULL COMMENT '任务名称',
     `date` TIMESTAMP NOT NULL COMMENT '日期',
     `completed` BOOLEAN NOT NULL COMMENT '是否完成',
-    `msg` TEXT NOT NULL COMMENT '描述',
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );
-create index idx_date_completed on `aphrodite`.`task_record`(`date`,`completed`);
+create index idx_date_completed on `aphrodite`.`task_record`(`date`);
