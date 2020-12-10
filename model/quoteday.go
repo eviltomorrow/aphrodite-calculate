@@ -11,72 +11,19 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-// SelectQuoteDayLatestByCodeDate select quoteday
-func SelectQuoteDayLatestByCodeDate(db db.ExecMySQL, code string, date string, size int) ([]QuoteDay, error) {
-	if size < 0 {
-		return []QuoteDay{}, nil
-	}
-
+// SelectQuoteDayByCodeDate select quoteday
+func SelectQuoteDayByCodeDate(db db.ExecMySQL, code string, begin, end string) ([]QuoteDay, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = "select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code =? and date <= ? order by date desc limit ?"
-	rows, err := db.QueryContext(ctx, _sql, code, date, size)
+	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code = ? and date between ? and ?")
+
+	rows, err := db.QueryContext(ctx, _sql, code, begin, end)
 	if err != nil {
 		return nil, err
 	}
 
-	var quotes = make([]QuoteDay, 0, size)
-	for rows.Next() {
-		var quote = QuoteDay{}
-		if err := rows.Scan(
-			&quote.ID,
-			&quote.Code,
-			&quote.Open,
-			&quote.Close,
-			&quote.High,
-			&quote.Low,
-			&quote.Volume,
-			&quote.Account,
-			&quote.Date,
-			&quote.DayOfYear,
-			&quote.CreateTimestamp,
-			&quote.ModifyTimestamp,
-		); err != nil {
-			return nil, err
-		}
-		quotes = append(quotes, quote)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return quotes, nil
-}
-
-// SelectQuoteDayByCodesDate select quoteday
-func SelectQuoteDayByCodesDate(db db.ExecMySQL, codes []string, date string) ([]QuoteDay, error) {
-	if len(codes) == 0 {
-		return []QuoteDay{}, nil
-	}
-
-	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
-	defer cannel()
-
-	var fields = make([]string, 0, len(codes))
-	var args = make([]interface{}, 0, len(codes))
-	for _, code := range codes {
-		fields = append(fields, "?")
-		args = append(args, code)
-	}
-	args = append(args, date)
-	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code in (%s) and date = ?", strings.Join(fields, ","))
-
-	rows, err := db.QueryContext(ctx, _sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	var quotes = make([]QuoteDay, 0, len(codes))
+	var quotes = make([]QuoteDay, 0, 16)
 	for rows.Next() {
 		var quote = QuoteDay{}
 		if err := rows.Scan(

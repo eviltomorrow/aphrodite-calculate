@@ -109,22 +109,3 @@ func TestSelectQuoteWeekByCodeDate(t *testing.T) {
 	_assert.Nil(err)
 	_assert.Equal(2, len(quotes))
 }
-
-func TestSelectQuoteWeekLatestByCodeDate(t *testing.T) {
-	_assert := assert.New(t)
-
-	tx, _ := db.MySQL.Begin()
-	_, err := DeleteQuoteWeekByCodesDate(tx, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
-	_assert.Nil(err)
-	tx.Commit()
-
-	tx, _ = db.MySQL.Begin()
-	affected, err := InsertQuoteWeekMany(tx, []*QuoteWeek{qw1, qw2})
-	_assert.Nil(err)
-	_assert.Equal(int64(2), affected)
-	tx.Commit()
-
-	quotes, err := SelectQuoteWeekLatestByCodeDate(db.MySQL, qw2.Code, endDate.Format("2006-01-02"), 20)
-	_assert.Nil(err)
-	_assert.Equal(1, len(quotes))
-}

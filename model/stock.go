@@ -21,50 +21,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// InsertStockManyForMySQL insert stock many for mysql
-func InsertStockManyForMySQL(db db.ExecMySQL, stocks []*Stock) (int64, error) {
-	if len(stocks) == 0 {
-		return 0, nil
-	}
-
-	ctx, cannel := context.WithTimeout(context.Background(), InsertTimeout)
-	defer cannel()
-
-	var fields = make([]string, 0, len(stocks))
-	var args = make([]interface{}, 0, 3*len(stocks))
-	for _, stock := range stocks {
-		fields = append(fields, "(?, ?, ?, now(), null)")
-		args = append(args, stock.Code)
-		args = append(args, stock.Name)
-		args = append(args, stock.Source)
-	}
-
-	var _sql = fmt.Sprintf("insert into stock (%s) values %s", strings.Join(stockFields, ","), strings.Join(fields, ","))
-	result, err := db.ExecContext(ctx, _sql, args...)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
-// UpdateStockByCodeForMySQL update stock by code for mysql
-func UpdateStockByCodeForMySQL(db db.ExecMySQL, code string, stock *Stock) (int64, error) {
-	ctx, cannel := context.WithTimeout(context.Background(), UpdateTimeout)
-	defer cannel()
-
-	var _sql = `update stock set name = ?, source = ?, modify_timestamp = now() where code = ?`
-	var args = []interface{}{
-		stock.Name,
-		stock.Source,
-		code,
-	}
-	result, err := db.ExecContext(ctx, _sql, args...)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
 // SelectStockManyByCodesForMySQL select stock list with code for mysql
 func SelectStockManyByCodesForMySQL(db db.ExecMySQL, codes []string) ([]*Stock, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
@@ -95,6 +51,24 @@ func SelectStockManyByCodesForMySQL(db db.ExecMySQL, codes []string) ([]*Stock, 
 	}
 
 	return stocks, nil
+}
+
+// UpdateStockByCodeForMySQL update stock by code for mysql
+func UpdateStockByCodeForMySQL(db db.ExecMySQL, code string, stock *Stock) (int64, error) {
+	ctx, cannel := context.WithTimeout(context.Background(), UpdateTimeout)
+	defer cannel()
+
+	var _sql = `update stock set name = ?, source = ?, modify_timestamp = now() where code = ?`
+	var args = []interface{}{
+		stock.Name,
+		stock.Source,
+		code,
+	}
+	result, err := db.ExecContext(ctx, _sql, args...)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 // SelectStockManyForMySQL select stock list for mysql
@@ -169,6 +143,32 @@ func SelectStockManyForMongoDB(db *mongo.Client, offset, limit int64, lastID str
 		return nil, err
 	}
 	return stocks, nil
+}
+
+// InsertStockManyForMySQL insert stock many for mysql
+func InsertStockManyForMySQL(db db.ExecMySQL, stocks []*Stock) (int64, error) {
+	if len(stocks) == 0 {
+		return 0, nil
+	}
+
+	ctx, cannel := context.WithTimeout(context.Background(), InsertTimeout)
+	defer cannel()
+
+	var fields = make([]string, 0, len(stocks))
+	var args = make([]interface{}, 0, 3*len(stocks))
+	for _, stock := range stocks {
+		fields = append(fields, "(?, ?, ?, now(), null)")
+		args = append(args, stock.Code)
+		args = append(args, stock.Name)
+		args = append(args, stock.Source)
+	}
+
+	var _sql = fmt.Sprintf("insert into stock (%s) values %s", strings.Join(stockFields, ","), strings.Join(fields, ","))
+	result, err := db.ExecContext(ctx, _sql, args...)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 //

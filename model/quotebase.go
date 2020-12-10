@@ -12,8 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// QueryQuoteBaseCurrentCodeLimit2 query quote base limit 2
-func QueryQuoteBaseCurrentCodeLimit2(db *mongo.Client, code string, date string) ([]*QuoteBase, error) {
+// SelectQuoteBaseCurrentCodeLimit2 query quote base limit 2
+func SelectQuoteBaseCurrentCodeLimit2(db *mongo.Client, code string, date string) ([]*QuoteBase, error) {
 	if strings.Count(date, "-") != 2 {
 		return nil, fmt.Errorf("Invalid date, date: %s", date)
 	}

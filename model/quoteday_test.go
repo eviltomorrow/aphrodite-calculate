@@ -95,104 +95,10 @@ func TestDeleteQuoteDayByCodesDate(t *testing.T) {
 	tx.Commit()
 }
 
-func TestSelectQuoteDayLatestByCodeDate(t *testing.T) {
-	_assert := assert.New(t)
-
-	tx, err := db.MySQL.Begin()
-	if err != nil {
-		t.Fatalf("Begin tx error: %v\r\n", err)
-	}
-	// prepare data
-	_, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
-	_assert.Nil(err)
-	tx.Commit()
-
-	quotes, err := SelectQuoteDayLatestByCodeDate(db.MySQL, q1.Code, date.Format("2006-01-02"), 30)
-	_assert.Nil(err)
-	_assert.Equal(0, len(quotes))
-
-	tx, err = db.MySQL.Begin()
-	if err != nil {
-		t.Fatalf("Begin tx error: %v\r\n", err)
-	}
-	// prepare data
-	_, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
-	_assert.Nil(err)
-	_, err = InsertQuoteDayMany(tx, []*QuoteDay{q1})
-	_assert.Nil(err)
-
-	tx.Commit()
-
-	quotes, err = SelectQuoteDayLatestByCodeDate(db.MySQL, q1.Code, date.Format("2006-01-02"), 30)
-	_assert.Nil(err)
-	_assert.Equal(1, len(quotes))
-	t.Logf("Open: %f\r\n", quotes[0].Open)
-
-	tx, err = db.MySQL.Begin()
-	if err != nil {
-		t.Fatalf("Begin tx error: %v\r\n", err)
-	}
-
-	for i := 0; i < 100; i++ {
-		InsertQuoteDayMany(tx, []*QuoteDay{q1})
-	}
-	tx.Commit()
-
-	quotes, err = SelectQuoteDayLatestByCodeDate(db.MySQL, q1.Code, date.Format("2006-01-02"), 30)
-	_assert.Nil(err)
-	_assert.Equal(30, len(quotes))
-}
-
 func TestSelectQuoteDayByCodeDate(t *testing.T) {
 	_assert := assert.New(t)
 
-	tx, err := db.MySQL.Begin()
-	if err != nil {
-		t.Fatalf("Begin tx error: %v\r\n", err)
-	}
-	// prepare data
-	_, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
-	_assert.Nil(err)
-	tx.Commit()
-
-	quotes, err := SelectQuoteDayByCodesDate(db.MySQL, []string{q1.Code, q1.Code}, date.Format("2006-01-02"))
-	_assert.Nil(err)
-	_assert.Equal(0, len(quotes))
-
-	tx, err = db.MySQL.Begin()
-	if err != nil {
-		t.Fatalf("Begin tx error: %v\r\n", err)
-	}
-	// prepare data
-	_, err = DeleteQuoteDayByCodesDate(tx, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
-	_assert.Nil(err)
-	_, err = InsertQuoteDayMany(tx, []*QuoteDay{q1, q2})
-	_assert.Nil(err)
-
-	tx.Commit()
-
-	quotes, err = SelectQuoteDayByCodesDate(db.MySQL, []string{q1.Code, q2.Code}, date.Format("2006-01-02"))
-	_assert.Nil(err)
-	_assert.Equal(2, len(quotes))
-}
-
-func BenchmarkSelectQuoteDayLatestByCodeDate(b *testing.B) {
-	tx, err := db.MySQL.Begin()
-	if err != nil {
-		b.Fatalf("Begin tx error: %v\r\n", err)
-	}
-
-	DeleteQuoteDayByCodesDate(tx, []string{q1.Code}, date.Format("2006-01-02"))
-	for i := 0; i < 100; i++ {
-		InsertQuoteDayMany(tx, []*QuoteDay{q1})
-	}
-	tx.Commit()
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		SelectQuoteDayLatestByCodeDate(db.MySQL, q1.Code, date.Format("2006-01-02"), 30)
-	}
-
+	_assert.Nil(nil)
 }
 
 func BenchmarkInsertQuoteDayMany(b *testing.B) {

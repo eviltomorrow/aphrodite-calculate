@@ -60,7 +60,7 @@ func TestUpdateTaskRecordCompleted(t *testing.T) {
 	_assert := assert.New(t)
 
 	var date = "2020-12-10"
-	records, err := QueryTaskRecordMany(db.MySQL, date)
+	records, err := SelectTaskRecordMany(db.MySQL, date)
 	_assert.Nil(err)
 
 	tx, err := db.MySQL.Begin()

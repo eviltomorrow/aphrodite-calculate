@@ -12,7 +12,7 @@ func TestQueryQuoteBaseCurrentCodeLimit2(t *testing.T) {
 
 	var code = "sz000001"
 	var date = "2020-12-04"
-	quotes, err := QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	quotes, err := SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	_assert.Nil(err)
 	_assert.Equal(2, len(quotes))
 
@@ -22,19 +22,19 @@ func TestQueryQuoteBaseCurrentCodeLimit2(t *testing.T) {
 
 	code = "sz000001"
 	date = "2020-12-08"
-	quotes, err = QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	quotes, err = SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	_assert.Nil(err)
 	_assert.Equal(1, len(quotes))
 
 	code = "sz000001"
 	date = "2020-12-09"
-	quotes, err = QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	quotes, err = SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	_assert.Nil(err)
 	_assert.Equal(0, len(quotes))
 
 	code = "sz000001"
 	date = "2020-12-31"
-	quotes, err = QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	quotes, err = SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	_assert.Nil(err)
 	_assert.Equal(0, len(quotes))
 
@@ -47,6 +47,6 @@ func BenchmarkQueryQuoteBaseOne(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+		SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	}
 }

@@ -11,45 +11,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-// SelectQuoteWeekLatestByCodeDate select quoteweek
-func SelectQuoteWeekLatestByCodeDate(db db.ExecMySQL, code string, date string, size int) ([]QuoteWeek, error) {
-	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
-	defer cannel()
-
-	var _sql = "select id, code, open, close, high, low, volume, account, date_begin, date_end, week_of_year, create_timestamp, modify_timestamp from quote_week where code =? and date_end <= ? order by date_end desc limit ?"
-	rows, err := db.QueryContext(ctx, _sql, code, date, size)
-	if err != nil {
-		return nil, err
-	}
-
-	var quotes = make([]QuoteWeek, 0, size)
-	for rows.Next() {
-		var quote = QuoteWeek{}
-		if err := rows.Scan(
-			&quote.ID,
-			&quote.Code,
-			&quote.Open,
-			&quote.Close,
-			&quote.High,
-			&quote.Low,
-			&quote.Volume,
-			&quote.Account,
-			&quote.DateBegin,
-			&quote.DateEnd,
-			&quote.WeekOfYear,
-			&quote.CreateTimestamp,
-			&quote.ModifyTimestamp,
-		); err != nil {
-			return nil, err
-		}
-		quotes = append(quotes, quote)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return quotes, nil
-}
-
 // SelectQuoteWeekByCodeDate select quoteday
 func SelectQuoteWeekByCodeDate(db db.ExecMySQL, codes []string, date string) ([]QuoteWeek, error) {
 	if len(codes) == 0 {

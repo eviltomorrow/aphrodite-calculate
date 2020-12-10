@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/eviltomorrow/aphrodite-calculate/db"
+	jsoniter "github.com/json-iterator/go"
 )
 
-// QueryTaskRecordMany select task record many
-func QueryTaskRecordMany(db db.ExecMySQL, date string) ([]*TaskRecord, error) {
+// SelectTaskRecordMany select task record many
+func SelectTaskRecordMany(db db.ExecMySQL, date string) ([]*TaskRecord, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
@@ -107,4 +108,9 @@ type TaskRecord struct {
 	Completed       bool         `json:"completed"` // 完成
 	CreateTimestamp time.Time    `json:"create_timestamp"`
 	ModifyTimestamp sql.NullTime `json:"modify_timestamp"`
+}
+
+func (t *TaskRecord) String() string {
+	buf, _ := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(t)
+	return string(buf)
 }

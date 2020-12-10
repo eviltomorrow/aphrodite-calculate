@@ -104,10 +104,11 @@ func SyncStockAllFromMongoDBToMySQL() {
 }
 
 func buildQuoteDayFromMongoDBToMySQL(code string, date string) (*model.QuoteDay, error) {
-	quotes, err := model.QueryQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	quotes, err := model.SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(quotes) != 2 {
 		zlog.Warn("No enough quote data", zap.String("code", code), zap.String("date", date))
 		return nil, nil
@@ -196,7 +197,31 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) error {
 	return nil
 }
 
-// SyncQuoteWeekFromMongoDBToMySQL sync quoteweek from mongodb to mysql
-func SyncQuoteWeekFromMongoDBToMySQL() {
+func buildQuoteWeekFromQuoteDay(code string, beginDate, endDate string) (*model.QuoteWeek, error) {
+	// model.selec
+	return nil, nil
+}
 
+// SyncQuoteWeekFromMongoDBToMySQL sync quoteweek from mongodb to mysql
+func SyncQuoteWeekFromMongoDBToMySQL(date string) error {
+	var offset int64 = 0
+	var limit int64 = 50
+	for {
+		stocks, err := model.SelectStockManyForMySQL(db.MySQL, offset, limit)
+		if err != nil {
+			return err
+		}
+
+		if len(stocks) == 0 {
+			break
+		}
+
+		var quotes = make([]*model.QuoteWeek, 0, limit)
+		var codes = make([]string, 0, limit)
+		for _, stock := range stocks {
+			codes = append(codes, stock.Code)
+			quotes = append(quotes, nil)
+		}
+	}
+	return nil
 }
