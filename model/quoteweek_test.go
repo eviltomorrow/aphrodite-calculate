@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/eviltomorrow/aphrodite-base/ztime"
 	"github.com/eviltomorrow/aphrodite-calculate/db"
-	"github.com/stretchr/testify/assert"
 )
 
 var beginDate = time.Date(2020, 11, 30, 0, 0, 0, 0, time.Local)
@@ -108,4 +109,8 @@ func TestSelectQuoteWeekByCodeDate(t *testing.T) {
 	quotes, err := SelectQuoteWeekByCodeDate(db.MySQL, []string{qw1.Code, qw2.Code}, endDate.Format("2006-01-02"))
 	_assert.Nil(err)
 	_assert.Equal(2, len(quotes))
+
+	quotes, err = SelectQuoteWeekByCodeDate(db.MySQL, []string{}, endDate.Format("2006-01-02"))
+	_assert.Nil(err)
+	_assert.Equal(0, len(quotes))
 }

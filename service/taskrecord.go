@@ -19,6 +19,7 @@ func BuildTaskRecord(begin, end time.Time) error {
 		return fmt.Errorf("Invalid date, begin: %v, end: %v", begin, end)
 	}
 
+	var cache = make([]*model.TaskRecord, 0, 64)
 	for {
 		if begin.After(end) {
 			break
@@ -32,7 +33,6 @@ func BuildTaskRecord(begin, end time.Time) error {
 			return err
 		}
 
-		var cache = make([]*model.TaskRecord, 0, len(standardTaskMethodLib))
 	loop:
 		for _, method := range standardTaskMethodLib {
 			for _, record := range records {
@@ -49,22 +49,34 @@ func BuildTaskRecord(begin, end time.Time) error {
 			cache = append(cache, record)
 		}
 
-		if len(cache) == 0 {
-			continue
+		if len(cache) > 60 {
+			tx, err := db.MySQL.Begin()
+			if err != nil {
+				return err
+			}
+			if _, err = model.InsertTaskRecordMany(tx, cache); err != nil {
+				tx.Rollback()
+				return err
+			}
+			if err = tx.Commit(); err != nil {
+				tx.Rollback()
+				return err
+			}
+			cache = cache[:0]
 		}
+	}
 
-		tx, err := db.MySQL.Begin()
-		if err != nil {
-			return err
-		}
-		if _, err = model.InsertTaskRecordMany(tx, cache); err != nil {
-			tx.Rollback()
-			return err
-		}
-		if err = tx.Commit(); err != nil {
-			tx.Rollback()
-			return err
-		}
+	tx, err := db.MySQL.Begin()
+	if err != nil {
+		return err
+	}
+	if _, err = model.InsertTaskRecordMany(tx, cache); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		tx.Rollback()
+		return err
 	}
 	return nil
 }

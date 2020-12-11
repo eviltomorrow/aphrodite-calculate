@@ -3,8 +3,9 @@ package model
 import (
 	"testing"
 
-	"github.com/eviltomorrow/aphrodite-calculate/db"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
 var t1 = &TaskRecord{
@@ -23,6 +24,13 @@ var t3 = &TaskRecord{
 	Method:    "SYNC_QUOTEWEEK",
 	Date:      "2020-12-10",
 	Completed: false,
+}
+
+func TestSelectTaskRecordMany(t *testing.T) {
+	_assert := assert.New(t)
+	records, err := SelectTaskRecordMany(db.MySQL, "2020-12-02")
+	_assert.Nil(err)
+	_assert.Equal(2, len(records))
 }
 
 func TestInsertTaskRecordMany(t *testing.T) {
@@ -72,6 +80,12 @@ func TestUpdateTaskRecordCompleted(t *testing.T) {
 	}
 
 	tx.Commit()
+}
+
+func BenchmarkSelectTaskRecordMany(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		SelectTaskRecordMany(db.MySQL, "2020-12-02")
+	}
 }
 
 func BenchmarkInsertTaskRecordMany(b *testing.B) {

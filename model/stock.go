@@ -11,14 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
+	jsoniter "github.com/json-iterator/go"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/eviltomorrow/aphrodite-calculate/db"
-	jsoniter "github.com/json-iterator/go"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // SelectStockManyByCodesForMySQL select stock list with code for mysql

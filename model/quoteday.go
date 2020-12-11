@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eviltomorrow/aphrodite-calculate/db"
 	jsoniter "github.com/json-iterator/go"
+
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
 // SelectQuoteDayByCodeDate select quoteday

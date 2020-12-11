@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/eviltomorrow/aphrodite-calculate/db"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
 var s1 = &Stock{
@@ -64,19 +65,14 @@ func TestSelectStockListForMongoDB(t *testing.T) {
 	_assert.Nil(err)
 	_assert.Equal(30, len(stocks))
 
-	var count int
 	var lastID string
 	for {
 		stocks, err = SelectStockManyForMongoDB(db.MongoDB, 0, 30, lastID)
 		if len(stocks) == 0 || len(stocks) < 30 {
-			count += len(stocks)
 			break
 		}
 		lastID = stocks[len(stocks)-1].ObjectID
-		count += len(stocks)
 	}
-
-	t.Logf("Count: %v\r\n", count)
 }
 
 func BenchmarkSelectStockListForMongoDB(b *testing.B) {

@@ -3,22 +3,19 @@ package model
 import (
 	"testing"
 
-	"github.com/eviltomorrow/aphrodite-calculate/db"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
 func TestQueryQuoteBaseCurrentCodeLimit2(t *testing.T) {
 	_assert := assert.New(t)
 
 	var code = "sz000001"
-	var date = "2020-12-04"
+	var date = "2020-09-05"
 	quotes, err := SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	_assert.Nil(err)
 	_assert.Equal(2, len(quotes))
-
-	for _, quote := range quotes {
-		t.Logf("Quote: %s\r\n", quote.String())
-	}
 
 	code = "sz000001"
 	date = "2020-12-08"
@@ -36,6 +33,12 @@ func TestQueryQuoteBaseCurrentCodeLimit2(t *testing.T) {
 	date = "2020-12-31"
 	quotes, err = SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
 	_assert.Nil(err)
+	_assert.Equal(0, len(quotes))
+
+	code = "sz000001"
+	date = "2020"
+	quotes, err = SelectQuoteBaseCurrentCodeLimit2(db.MongoDB, code, date)
+	_assert.NotNil(err)
 	_assert.Equal(0, len(quotes))
 
 }

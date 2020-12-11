@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/eviltomorrow/aphrodite-calculate/db"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
 var date1 = time.Date(2020, 12, 03, 0, 0, 0, 0, time.Local)

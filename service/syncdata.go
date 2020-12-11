@@ -50,12 +50,12 @@ loop:
 	}
 
 	if len(updateCache) == 0 && len(insertCache) == 0 {
-		return 0, "", nil
+		return 0, lastID, nil
 	}
 
 	tx, err := db.MySQL.Begin()
 	if err != nil {
-		return 0, "", fmt.Errorf("Get mysql transaction failure, nest error: %v", err)
+		return 0, lastID, fmt.Errorf("Get mysql transaction failure, nest error: %v", err)
 	}
 
 	var count int64
