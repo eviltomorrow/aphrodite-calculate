@@ -26,9 +26,9 @@ var t3 = &TaskRecord{
 	Completed: false,
 }
 
-func TestSelectTaskRecordMany(t *testing.T) {
+func TestSelectTaskRecordManyByDate(t *testing.T) {
 	_assert := assert.New(t)
-	records, err := SelectTaskRecordMany(db.MySQL, "2020-12-02")
+	records, err := SelectTaskRecordManyByDate(db.MySQL, "2020-12-02")
 	_assert.Nil(err)
 	_assert.Equal(2, len(records))
 }
@@ -68,7 +68,7 @@ func TestUpdateTaskRecordCompleted(t *testing.T) {
 	_assert := assert.New(t)
 
 	var date = "2020-12-10"
-	records, err := SelectTaskRecordMany(db.MySQL, date)
+	records, err := SelectTaskRecordManyByDate(db.MySQL, date)
 	_assert.Nil(err)
 
 	tx, err := db.MySQL.Begin()
@@ -82,9 +82,9 @@ func TestUpdateTaskRecordCompleted(t *testing.T) {
 	tx.Commit()
 }
 
-func BenchmarkSelectTaskRecordMany(b *testing.B) {
+func BenchmarkSelectTaskRecordManyByDate(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		SelectTaskRecordMany(db.MySQL, "2020-12-02")
+		SelectTaskRecordManyByDate(db.MySQL, "2020-12-02")
 	}
 }
 

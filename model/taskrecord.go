@@ -12,8 +12,41 @@ import (
 	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
-// SelectTaskRecordMany select task record many
-func SelectTaskRecordMany(db db.ExecMySQL, date string) ([]*TaskRecord, error) {
+// SelectTaskRecordManyByCompleted select task record with completed
+func SelectTaskRecordManyByCompleted(db db.ExecMySQL, completed bool) ([]*TaskRecord, error) {
+	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
+	defer cannel()
+
+	var _sql = "select id, method, date, completed, create_timestamp, modify_timestamp from task_record where completed = ?"
+	rows, err := db.QueryContext(ctx, _sql, completed)
+	if err != nil {
+		return nil, err
+	}
+
+	var records = make([]*TaskRecord, 0, 16)
+	for rows.Next() {
+		var record = TaskRecord{}
+		if err := rows.Scan(
+			&record.ID,
+			&record.Method,
+			&record.Date,
+			&record.Completed,
+			&record.CreateTimestamp,
+			&record.ModifyTimestamp,
+		); err != nil {
+			return nil, err
+		}
+		records = append(records, &record)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return records, nil
+}
+
+// SelectTaskRecordManyByDate select task record with date
+func SelectTaskRecordManyByDate(db db.ExecMySQL, date string) ([]*TaskRecord, error) {
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 

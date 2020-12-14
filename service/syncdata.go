@@ -86,7 +86,7 @@ loop:
 }
 
 // SyncStockAllFromMongoDBToMySQL sync stock from mongodb to mysql
-func SyncStockAllFromMongoDBToMySQL() {
+func SyncStockAllFromMongoDBToMySQL() error {
 	var offset int64 = 0
 	var limit int64 = 100
 	var lastID string
@@ -94,7 +94,7 @@ func SyncStockAllFromMongoDBToMySQL() {
 	for {
 		affected, lastID, err := syncStockFromMongoDBToMySQL(offset, limit, lastID)
 		if err != nil {
-			zlog.Error("Sync stock from mongodb to mysql failure", zap.Int64("offset", offset), zap.Int64("limit", limit), zap.String("lastID", lastID))
+			return fmt.Errorf("Sync stock failure, nest error: %v, offset: %d, limit: %d, lastID: %s", err, offset, limit, lastID)
 		}
 		if lastID == "" {
 			break
@@ -102,7 +102,7 @@ func SyncStockAllFromMongoDBToMySQL() {
 		offset += limit
 		count += affected
 	}
-	zlog.Info("Sync stock complete", zap.Int64("total count", count))
+	return nil
 }
 
 func buildQuoteDayFromMongoDBToMySQL(code string, date string) (*model.QuoteDay, error) {

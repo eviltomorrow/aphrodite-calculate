@@ -35,23 +35,20 @@ func BenchmarkBuildTaskRecord(b *testing.B) {
 
 }
 
-func TestPollTaskRecord(t *testing.T) {
+func TestPollUncompletedTaskRecord(t *testing.T) {
 	_assert := assert.New(t)
-	var date = "2020-12-02"
-	records, err := PollTaskRecord(date)
+	records, err := PollUncompletedTaskRecord(false)
 	_assert.Nil(err)
 	_assert.Equal(2, len(records))
 
-	date = "2021-01-01"
-	records, err = PollTaskRecord(date)
+	records, err = PollUncompletedTaskRecord(false)
 	_assert.Nil(err)
 	_assert.Equal(0, len(records))
 }
 
 func TestArchiveTaskRecord(t *testing.T) {
 	_assert := assert.New(t)
-	var date = "2020-12-02"
-	records, err := PollTaskRecord(date)
+	records, err := PollUncompletedTaskRecord(false)
 	_assert.Nil(err)
 
 	var ids = make([]int64, 0, len(records))

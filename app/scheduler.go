@@ -1,10 +1,6 @@
 package app
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 
 	"github.com/eviltomorrow/aphrodite-base/zlog"
@@ -13,59 +9,70 @@ import (
 
 //
 var (
-	DefaultCronSpec = "01 00 * * MON,TUE,WED,THU,FRI"
+	DefaultCronSpec               = "01 00 * * MON,TUE,WED,THU,FRI"
+	SignalCH        chan struct{} = make(chan struct{}, 64)
 )
 
-// Init scheduler
-func initScheduler() error {
-	var c = cron.New()
+func runjob() {
+	go func() {
+		for range SignalCH {
+			// 获取 task
+			records, err := service.PollUncompletedTaskRecord(false)
+			if err != nil {
+				zlog.Error("Poll uncompleted task record failure", zap.Error(err))
+				continue
+			}
 
-	if _, err := c.AddFunc(DefaultCronSpec, syncCronFunc); err != nil {
-		zlog.Fatal("Cron add func failure", zap.Error(err))
-	}
-	c.Start()
-	return nil
-}
+			for _, record := range records {
+				if record.Completed {
+					continue
+				}
 
-// 同步日数据：每周 2(5)，3(1)，4(2)，5(3)，1(4)
-func syncCronFunc() {
-	var syncDate string
-	now := time.Now()
+				switch record.Method {
+				case service.SyncQuoteDay:
+					if err = service.SyncQuoteDayFromMongoDBToMySQL(record.Date); err != nil {
+						zlog.Error("Sync quote day failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
 
-	switch now.Weekday() {
-	case time.Monday, time.Tuesday:
-		syncDate = now.AddDate(0, 0, -4).Format("2006-01-02")
+				case service.SyncQuoteWeek:
+					if err = service.SyncQuoteWeekFromMongoDBToMySQL(record.Date); err != nil {
+						zlog.Error("Sync quote week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
 
-	case time.Wednesday, time.Thursday, time.Friday:
-		syncDate = now.AddDate(0, 0, -2).Format("2006-01-02")
-
-	default:
-		zlog.Error("Panic: Invalid sync date", zap.Time("now", now))
-		return
-	}
-
-	if err := sync(syncDate); err != nil {
-		zlog.Error("Sync date failure", zap.Error(err), zap.Time("now", now), zap.String("sync-date", syncDate))
-	}
-}
-
-func sync(date string) error {
-	d, err := time.ParseInLocation("2006-01-02", date, time.Local)
-	if err != nil {
-		return err
-	}
-
-	service.SyncStockAllFromMongoDBToMySQL()
-	if err := service.SyncQuoteDayFromMongoDBToMySQL(date); err != nil {
-		return fmt.Errorf("sync quote day failure, nest error: %v, date: %s", err, date)
-	}
-
-	// is sync week day
-	if d.Weekday() == time.Thursday {
-		if err := service.SyncQuoteWeekFromMongoDBToMySQL(date); err != nil {
-			return fmt.Errorf("sync quote week failure, nest error: %v, date: %s", err, date)
+				default:
+					zlog.Warn("Not support method", zap.String("method", record.Method))
+				}
+			}
 		}
-	}
-
-	return nil
+	}()
 }
+
+// // Init scheduler
+// func initScheduler() error {
+// 	var c = cron.New()
+
+// 	if _, err := c.AddFunc(DefaultCronSpec, syncCronFunc); err != nil {
+// 		zlog.Fatal("Cron add func failure", zap.Error(err))
+// 	}
+// 	c.Start()
+// 	return nil
+// }
+
+// // 同步日数据：每周 2(5)，3(1)，4(2)，5(3)，1(4)
+// func syncCronFunc() {
+// 	var syncDate string
+// 	now := time.Now()
+
+// 	switch now.Weekday() {
+// 	case time.Monday, time.Tuesday:
+// 		syncDate = now.AddDate(0, 0, -4).Format("2006-01-02")
+
+// 	case time.Wednesday, time.Thursday, time.Friday:
+// 		syncDate = now.AddDate(0, 0, -2).Format("2006-01-02")
+
+// 	default:
+// 		zlog.Error("Panic: Invalid sync date", zap.Time("now", now))
+// 		return
+// 	}
+
+// }

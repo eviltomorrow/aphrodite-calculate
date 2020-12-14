@@ -59,5 +59,5 @@ create table `aphrodite`.`task_record` (
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );
-create index idx_date_completed on `aphrodite`.`task_record`(`date`);
+create index idx_date_completed on `aphrodite`.`task_record`(`date`,`completed`);
 
