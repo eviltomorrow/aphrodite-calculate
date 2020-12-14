@@ -41,7 +41,7 @@ func TestIbuildQuoteDayFromMongoDBToMySQL(t *testing.T) {
 func TestSyncQuoteDayFromMongoDBToMySQL(t *testing.T) {
 	_assert := assert.New(t)
 	var date = "2020-12-02"
-	err := SyncQuoteDayFromMongoDBToMySQL(date)
+	_, err := SyncQuoteDayFromMongoDBToMySQL(date)
 	_assert.Nil(err)
 }
 

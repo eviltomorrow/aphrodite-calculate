@@ -86,7 +86,7 @@ loop:
 }
 
 // SyncStockAllFromMongoDBToMySQL sync stock from mongodb to mysql
-func SyncStockAllFromMongoDBToMySQL() error {
+func SyncStockAllFromMongoDBToMySQL() (int64, error) {
 	var offset int64 = 0
 	var limit int64 = 100
 	var lastID string
@@ -94,7 +94,7 @@ func SyncStockAllFromMongoDBToMySQL() error {
 	for {
 		affected, lastID, err := syncStockFromMongoDBToMySQL(offset, limit, lastID)
 		if err != nil {
-			return fmt.Errorf("Sync stock failure, nest error: %v, offset: %d, limit: %d, lastID: %s", err, offset, limit, lastID)
+			return 0, fmt.Errorf("Sync stock failure, nest error: %v, offset: %d, limit: %d, lastID: %s", err, offset, limit, lastID)
 		}
 		if lastID == "" {
 			break
@@ -102,7 +102,7 @@ func SyncStockAllFromMongoDBToMySQL() error {
 		offset += limit
 		count += affected
 	}
-	return nil
+	return count, nil
 }
 
 func buildQuoteDayFromMongoDBToMySQL(code string, date string) (*model.QuoteDay, error) {
@@ -142,13 +142,14 @@ func buildQuoteDayFromMongoDBToMySQL(code string, date string) (*model.QuoteDay,
 }
 
 // SyncQuoteDayFromMongoDBToMySQL sync quoteday from mongodb to mysql
-func SyncQuoteDayFromMongoDBToMySQL(date string) error {
+func SyncQuoteDayFromMongoDBToMySQL(date string) (int64, error) {
 	var offset int64 = 0
 	var limit int64 = 50
+	var count int64
 	for {
 		stocks, err := model.SelectStockManyForMySQL(db.MySQL, offset, limit)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		if len(stocks) == 0 {
@@ -162,7 +163,7 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) error {
 
 			quote, err := buildQuoteDayFromMongoDBToMySQL(stock.Code, date)
 			if err != nil {
-				return err
+				return 0, err
 			}
 			if quote != nil {
 				quotes = append(quotes, quote)
@@ -176,28 +177,29 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) error {
 
 		tx, err := db.MySQL.Begin()
 		if err != nil {
-			return err
+			return 0, err
 		}
 		_, err = model.DeleteQuoteDayByCodesDate(tx, codes, date)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 
-		_, err = model.InsertQuoteDayMany(tx, quotes)
+		affected, err := model.InsertQuoteDayMany(tx, quotes)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 
 		if err = tx.Commit(); err != nil {
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 
 		offset += limit
+		count += affected
 	}
-	return nil
+	return count, nil
 }
 
 func buildQuoteWeekFromQuoteDay(code string, begin, end time.Time) (*model.QuoteWeek, error) {
@@ -254,17 +256,17 @@ func buildQuoteWeekFromQuoteDay(code string, begin, end time.Time) (*model.Quote
 }
 
 // SyncQuoteWeekFromMongoDBToMySQL sync quoteweek from mongodb to mysql
-func SyncQuoteWeekFromMongoDBToMySQL(date string) error {
+func SyncQuoteWeekFromMongoDBToMySQL(date string) (int64, error) {
 	var offset int64 = 0
 	var limit int64 = 50
-
+	var count int64
 	end, err := time.ParseInLocation("2006-01-02", date, time.Local)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if end.Weekday() != time.Friday {
-		return fmt.Errorf("Date is not Friday, date: %s", date)
+		return 0, fmt.Errorf("Date is not Friday, date: %s", date)
 	}
 
 	begin := end.AddDate(0, 0, -5)
@@ -272,7 +274,7 @@ func SyncQuoteWeekFromMongoDBToMySQL(date string) error {
 	for {
 		stocks, err := model.SelectStockManyForMySQL(db.MySQL, offset, limit)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		if len(stocks) == 0 {
@@ -285,7 +287,7 @@ func SyncQuoteWeekFromMongoDBToMySQL(date string) error {
 			codes = append(codes, stock.Code)
 			quote, err := buildQuoteWeekFromQuoteDay(stock.Code, begin, end)
 			if err != nil {
-				return err
+				return 0, err
 			}
 			if quote != nil {
 				quotes = append(quotes, quote)
@@ -298,26 +300,27 @@ func SyncQuoteWeekFromMongoDBToMySQL(date string) error {
 
 		tx, err := db.MySQL.Begin()
 		if err != nil {
-			return err
+			return 0, err
 		}
 		_, err = model.DeleteQuoteWeekByCodesDate(tx, codes, end.Format("2006-01-02"))
 		if err != nil {
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 
-		_, err = model.InsertQuoteWeekMany(tx, quotes)
+		affected, err := model.InsertQuoteWeekMany(tx, quotes)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 
 		if err = tx.Commit(); err != nil {
 			tx.Rollback()
-			return err
+			return 0, err
 		}
 
 		offset += limit
+		count += affected
 	}
-	return nil
+	return count, nil
 }

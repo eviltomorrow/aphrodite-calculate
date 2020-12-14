@@ -30,12 +30,12 @@ func runjob() {
 
 				switch record.Method {
 				case service.SyncQuoteDay:
-					if err = service.SyncQuoteDayFromMongoDBToMySQL(record.Date); err != nil {
+					if _, err = service.SyncQuoteDayFromMongoDBToMySQL(record.Date); err != nil {
 						zlog.Error("Sync quote day failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
 					}
 
 				case service.SyncQuoteWeek:
-					if err = service.SyncQuoteWeekFromMongoDBToMySQL(record.Date); err != nil {
+					if _, err = service.SyncQuoteWeekFromMongoDBToMySQL(record.Date); err != nil {
 						zlog.Error("Sync quote week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
 					}
 

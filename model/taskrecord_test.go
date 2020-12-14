@@ -9,28 +9,34 @@ import (
 )
 
 var t1 = &TaskRecord{
-	Method:    "SYNC_QUOTEDAY",
-	Date:      "2020-12-10",
-	Completed: false,
+	Method:     "SYNC_QUOTEDAY",
+	Date:       "2020-12-10",
+	Priority:   1,
+	Completed:  false,
+	NumOfTimes: 0,
 }
 
 var t2 = &TaskRecord{
-	Method:    "SYNC_QUOTEDAY",
-	Date:      "2020-12-10",
-	Completed: false,
+	Method:     "SYNC_QUOTEDAY",
+	Date:       "2020-12-10",
+	Priority:   1,
+	Completed:  false,
+	NumOfTimes: 0,
 }
 
 var t3 = &TaskRecord{
-	Method:    "SYNC_QUOTEWEEK",
-	Date:      "2020-12-10",
-	Completed: false,
+	Method:     "SYNC_QUOTEWEEK",
+	Date:       "2020-12-10",
+	Priority:   2,
+	Completed:  false,
+	NumOfTimes: 0,
 }
 
 func TestSelectTaskRecordManyByDate(t *testing.T) {
 	_assert := assert.New(t)
-	records, err := SelectTaskRecordManyByDate(db.MySQL, "2020-12-02")
+	records, err := SelectTaskRecordManyByDate(db.MySQL, "2020-12-10")
 	_assert.Nil(err)
-	_assert.Equal(2, len(records))
+	_assert.Equal(33, len(records))
 }
 
 func TestInsertTaskRecordMany(t *testing.T) {
@@ -52,8 +58,10 @@ func TestInsertTaskRecordMany(t *testing.T) {
 	var records = make([]*TaskRecord, 0, 30)
 	for i := 10; i < 40; i++ {
 		var t = &TaskRecord{
-			Method: "SYNC_QUOTEDAY",
-			Date:   "2020-12-10",
+			Method:     "SYNC_QUOTEDAY",
+			Date:       "2020-12-10",
+			Priority:   1,
+			NumOfTimes: 0,
 		}
 		records = append(records, t)
 	}

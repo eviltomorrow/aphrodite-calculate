@@ -55,7 +55,9 @@ create table `aphrodite`.`task_record` (
     `id` BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `method` VARCHAR(32) NOT NULL COMMENT '任务名称',
     `date` TIMESTAMP NOT NULL COMMENT '日期',
+    `priority` INT NOT NULL COMMENT '优先级',
     `completed` BOOLEAN NOT NULL COMMENT '是否完成',
+    `num_of_times` INT NOT NULL COMMENT '次数',
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `modify_timestamp` TIMESTAMP COMMENT '修改时间'
 );
