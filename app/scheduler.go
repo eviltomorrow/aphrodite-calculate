@@ -38,7 +38,7 @@ func runjob() {
 		for date := range DateCH {
 			zlog.Info("Run job", zap.String("date", date))
 			// 获取 task
-			records, err := service.PollUncompletedTaskRecord(false)
+			records, err := service.PollTaskRecord(false)
 			if err != nil {
 				zlog.Error("Poll uncompleted task record failure", zap.Error(err))
 				continue
@@ -50,16 +50,17 @@ func runjob() {
 					continue
 				}
 
+				var date = record.Date.Format("2006-01-02")
 				var count int64
 				switch record.Method {
 				case service.SyncQuoteDay:
-					if count, err = service.SyncQuoteDayFromMongoDBToMySQL(record.Date); err != nil {
-						zlog.Error("Sync quote day failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					if count, err = service.SyncQuoteDayFromMongoDBToMySQL(date); err != nil {
+						zlog.Error("Sync quote day failure", zap.Int64("id", record.ID), zap.String("date", date), zap.Error(err))
 					}
 
 				case service.SyncQuoteWeek:
-					if count, err = service.SyncQuoteWeekFromMongoDBToMySQL(record.Date); err != nil {
-						zlog.Error("Sync quote week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					if count, err = service.SyncQuoteWeekFromMongoDBToMySQL(date); err != nil {
+						zlog.Error("Sync quote week failure", zap.Int64("id", record.ID), zap.String("date", date), zap.Error(err))
 					}
 
 				default:

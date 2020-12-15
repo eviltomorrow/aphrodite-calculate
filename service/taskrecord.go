@@ -14,6 +14,11 @@ const (
 	SyncQuoteWeek = "SYNC_QUOTEWEEK"
 )
 
+var priorityLib = map[string]int{
+	SyncQuoteDay:  0,
+	SyncQuoteWeek: 1,
+}
+
 // BuildTaskRecord build task record
 func BuildTaskRecord(begin, end time.Time) error {
 	if begin.Format("2006-01-02") != end.Format("2006-01-02") && begin.After(end) {
@@ -41,7 +46,6 @@ func BuildTaskRecord(begin, end time.Time) error {
 			methods = append(methods, SyncQuoteWeek)
 		default:
 		}
-		begin = begin.AddDate(0, 0, 1)
 
 	loop:
 		for _, method := range methods {
@@ -50,14 +54,17 @@ func BuildTaskRecord(begin, end time.Time) error {
 					continue loop
 				}
 			}
+
 			var record = &model.TaskRecord{
 				Method:    method,
-				Date:      current,
+				Date:      begin,
 				Completed: false,
+				Priority:  priorityLib[method],
 			}
 			cache = append(cache, record)
 		}
 		methods = methods[:0]
+		begin = begin.AddDate(0, 0, 1)
 
 		if len(cache) > 60 {
 			tx, err := db.MySQL.Begin()
@@ -114,8 +121,8 @@ func ArchiveTaskRecord(ids []int64) error {
 	return nil
 }
 
-// PollUncompletedTaskRecord poll uncompleted task record
-func PollUncompletedTaskRecord(completed bool) ([]*model.TaskRecord, error) {
+// PollTaskRecord poll uncompleted task record
+func PollTaskRecord(completed bool) ([]*model.TaskRecord, error) {
 	records, err := model.SelectTaskRecordManyByCompleted(db.MySQL, completed)
 	if err != nil {
 		return nil, err
@@ -123,11 +130,9 @@ func PollUncompletedTaskRecord(completed bool) ([]*model.TaskRecord, error) {
 
 	var cache = make([]*model.TaskRecord, 0, len(records))
 
-	for _, record := range records {
-		if record.NumOfTimes < 14 {
-			cache = append(cache, record)
-		}
-	}
+	// for _, record := range records {
+
+	// }
 
 	return cache, nil
 }

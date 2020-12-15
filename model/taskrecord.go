@@ -17,7 +17,7 @@ func SelectTaskRecordManyByCompleted(db db.ExecMySQL, completed bool) ([]*TaskRe
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = "select id, method, DATE_FORMAT(date,'%Y-%m-%d'), priority, completed, num_of_times, create_timestamp, modify_timestamp from task_record where completed = ? order by date asc,priority asc"
+	var _sql = "select id, method, DATE_FORMAT(date,'%Y-%m-%d'), priority, completed, create_timestamp, modify_timestamp from task_record where completed = ? order by date asc,priority asc"
 	rows, err := db.QueryContext(ctx, _sql, completed)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,6 @@ func SelectTaskRecordManyByCompleted(db db.ExecMySQL, completed bool) ([]*TaskRe
 			&record.Date,
 			&record.Priority,
 			&record.Completed,
-			&record.NumOfTimes,
 			&record.CreateTimestamp,
 			&record.ModifyTimestamp,
 		); err != nil {
@@ -52,7 +51,7 @@ func SelectTaskRecordManyByDate(db db.ExecMySQL, date string) ([]*TaskRecord, er
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = "select id, method, DATE_FORMAT(date,'%Y-%m-%d'), priority, completed, num_of_times, create_timestamp, modify_timestamp from task_record where date = ?"
+	var _sql = "select id, method, DATE_FORMAT(date,'%Y-%m-%d'), priority, completed, create_timestamp, modify_timestamp from task_record where date = ?"
 	rows, err := db.QueryContext(ctx, _sql, date)
 	if err != nil {
 		return nil, err
@@ -67,7 +66,6 @@ func SelectTaskRecordManyByDate(db db.ExecMySQL, date string) ([]*TaskRecord, er
 			&record.Date,
 			&record.Priority,
 			&record.Completed,
-			&record.NumOfTimes,
 			&record.CreateTimestamp,
 			&record.ModifyTimestamp,
 		); err != nil {
@@ -84,6 +82,10 @@ func SelectTaskRecordManyByDate(db db.ExecMySQL, date string) ([]*TaskRecord, er
 
 // UpdateTaskRecordCompleted update task record by id
 func UpdateTaskRecordCompleted(db db.ExecMySQL, ids []int64) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
 	ctx, cannel := context.WithTimeout(context.Background(), UpdateTimeout)
 	defer cannel()
 
@@ -93,7 +95,7 @@ func UpdateTaskRecordCompleted(db db.ExecMySQL, ids []int64) (int64, error) {
 		fields = append(fields, "?")
 		args = append(args, id)
 	}
-	var _sql = fmt.Sprintf("update task_record set completed = true, num_of_times = num_of_times + 1, modify_timestamp = now() where id in (%s)", strings.Join(fields, ","))
+	var _sql = fmt.Sprintf("update task_record set completed = true, modify_timestamp = now() where id in (%s)", strings.Join(fields, ","))
 	result, err := db.ExecContext(ctx, _sql, args...)
 	if err != nil {
 		return 0, err
@@ -113,7 +115,7 @@ func InsertTaskRecordMany(db db.ExecMySQL, records []*TaskRecord) (int64, error)
 	var fields = make([]string, 0, len(records))
 	var args = make([]interface{}, 0, 3*len(records))
 	for _, record := range records {
-		fields = append(fields, "(?, ?, ?, false, 0, now(), null)")
+		fields = append(fields, "(?, ?, ?, false, now(), null)")
 		args = append(args, record.Method)
 		args = append(args, record.Date)
 		args = append(args, record.Priority)
@@ -153,10 +155,9 @@ var taskRecordFields = []string{
 type TaskRecord struct {
 	ID              int64        `json:"id"`     // id
 	Method          string       `json:"method"` // 方式
-	Date            string       `json:"date"`
+	Date            time.Time    `json:"date"`
 	Priority        int          `json:"priority"`  // 优先级
 	Completed       bool         `json:"completed"` // 完成
-	NumOfTimes      int          `json:"num_of_times"`
 	CreateTimestamp time.Time    `json:"create_timestamp"`
 	ModifyTimestamp sql.NullTime `json:"modify_timestamp"`
 }

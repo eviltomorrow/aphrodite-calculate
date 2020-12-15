@@ -4,58 +4,151 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eviltomorrow/aphrodite-calculate/db"
 	"github.com/stretchr/testify/assert"
 )
 
+var beginDate = "2020-09-01"
+var endDate = "2020-12-10"
+
 func TestBuildTaskRecord(t *testing.T) {
+	db.MySQL.Exec("truncate table task_record")
+
 	_assert := assert.New(t)
-	begin, err := time.ParseInLocation("2006-01-02", "2020-12-01", time.Local)
+	begin, err := time.ParseInLocation("2006-01-02", beginDate, time.Local)
 	_assert.Nil(err)
 
-	end, err := time.ParseInLocation("2006-01-02", "2020-12-10", time.Local)
+	end, err := time.ParseInLocation("2006-01-02", endDate, time.Local)
 	_assert.Nil(err)
 	err = BuildTaskRecord(begin, end)
 	_assert.Nil(err)
+
+	var count int
+	for {
+		if begin.After(end) {
+			break
+		}
+
+		switch begin.Weekday() {
+		case time.Tuesday, time.Wednesday, time.Thursday, time.Friday:
+			count++
+		case time.Monday:
+			count += 2
+		}
+		begin = begin.AddDate(0, 0, 1)
+	}
+
+	records, err := PollTaskRecord(false)
+	_assert.Nil(err)
+	_assert.Equal(count, len(records))
+
+	for _, record := range records {
+		_assert.Equal(false, record.Completed)
+		_assert.Equal(priorityLib[record.Method], record.Priority)
+	}
+
+	begin, err = time.ParseInLocation("2006-01-02", beginDate, time.Local)
+	_assert.Nil(err)
+
+	end, err = time.ParseInLocation("2006-01-02", endDate, time.Local)
+	_assert.Nil(err)
+	err = BuildTaskRecord(begin, end)
+	_assert.Nil(err)
+
+	records, err = PollTaskRecord(false)
+	_assert.Nil(err)
+	_assert.Equal(count, len(records))
+
+	for _, record := range records {
+		_assert.Equal(false, record.Completed)
+		_assert.Equal(priorityLib[record.Method], record.Priority)
+	}
 }
 
-func BenchmarkBuildTaskRecord(b *testing.B) {
-	begin, err := time.ParseInLocation("2006-01-02", "2020-12-01", time.Local)
-	if err != nil {
-		b.Fatalf("Error: %v\r\n", err)
-	}
+func TestPollTaskRecord(t *testing.T) {
+	db.MySQL.Exec("truncate table task_record")
 
-	end, err := time.ParseInLocation("2006-01-02", "2020-12-10", time.Local)
-	if err != nil {
-		b.Fatalf("Error: %v\r\n", err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		BuildTaskRecord(begin, end)
-	}
-
-}
-
-func TestPollUncompletedTaskRecord(t *testing.T) {
 	_assert := assert.New(t)
-	records, err := PollUncompletedTaskRecord(false)
+	begin, err := time.ParseInLocation("2006-01-02", beginDate, time.Local)
 	_assert.Nil(err)
-	_assert.Equal(2, len(records))
 
-	records, err = PollUncompletedTaskRecord(false)
+	end, err := time.ParseInLocation("2006-01-02", endDate, time.Local)
 	_assert.Nil(err)
-	_assert.Equal(0, len(records))
+	err = BuildTaskRecord(begin, end)
+	_assert.Nil(err)
+
+	var count int
+	for {
+		if begin.After(end) {
+			break
+		}
+
+		switch begin.Weekday() {
+		case time.Tuesday, time.Wednesday, time.Thursday, time.Friday:
+			count++
+		case time.Monday:
+			count += 2
+		}
+		begin = begin.AddDate(0, 0, 1)
+	}
+
+	records, err := PollTaskRecord(false)
+	_assert.Nil(err)
+	_assert.Equal(count, len(records))
+
+	for _, record := range records {
+		_assert.Equal(false, record.Completed)
+		_assert.Equal(priorityLib[record.Method], record.Priority)
+	}
+
 }
 
 func TestArchiveTaskRecord(t *testing.T) {
+	db.MySQL.Exec("truncate table task_record")
+
 	_assert := assert.New(t)
-	records, err := PollUncompletedTaskRecord(false)
+	begin, err := time.ParseInLocation("2006-01-02", beginDate, time.Local)
 	_assert.Nil(err)
 
-	var ids = make([]int64, 0, len(records))
+	end, err := time.ParseInLocation("2006-01-02", endDate, time.Local)
+	_assert.Nil(err)
+	err = BuildTaskRecord(begin, end)
+	_assert.Nil(err)
+
+	var count int
+	for {
+		if begin.After(end) {
+			break
+		}
+
+		switch begin.Weekday() {
+		case time.Tuesday, time.Wednesday, time.Thursday, time.Friday:
+			count++
+		case time.Monday:
+			count += 2
+		}
+		begin = begin.AddDate(0, 0, 1)
+	}
+
+	records, err := PollTaskRecord(false)
+	_assert.Nil(err)
+	_assert.Equal(count, len(records))
+
+	var ids = make([]int64, 0, count)
 	for _, record := range records {
+		_assert.Equal(false, record.Completed)
+		_assert.Equal(priorityLib[record.Method], record.Priority)
 		ids = append(ids, record.ID)
 	}
 
 	err = ArchiveTaskRecord(ids)
 	_assert.Nil(err)
+
+	records, err = PollTaskRecord(true)
+	_assert.Nil(err)
+	_assert.Equal(count, len(records))
+	for _, record := range records {
+		_assert.Equal(true, record.Completed)
+		_assert.Equal(priorityLib[record.Method], record.Priority)
+	}
 }
