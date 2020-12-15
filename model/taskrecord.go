@@ -17,7 +17,7 @@ func SelectTaskRecordManyByCompleted(db db.ExecMySQL, completed bool) ([]*TaskRe
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = "select id, method, date, priority, completed, num_of_times, create_timestamp, modify_timestamp from task_record where completed = ? order by priority aesc"
+	var _sql = "select id, method, DATE_FORMAT(date,'%Y-%m-%d'), priority, completed, num_of_times, create_timestamp, modify_timestamp from task_record where completed = ? order by date asc,priority asc"
 	rows, err := db.QueryContext(ctx, _sql, completed)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func SelectTaskRecordManyByDate(db db.ExecMySQL, date string) ([]*TaskRecord, er
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = "select id, method, date, priority, completed, num_of_times, create_timestamp, modify_timestamp from task_record where date = ?"
+	var _sql = "select id, method, DATE_FORMAT(date,'%Y-%m-%d'), priority, completed, num_of_times, create_timestamp, modify_timestamp from task_record where date = ?"
 	rows, err := db.QueryContext(ctx, _sql, date)
 	if err != nil {
 		return nil, err

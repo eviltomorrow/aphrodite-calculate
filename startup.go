@@ -14,6 +14,8 @@ import (
 	"github.com/eviltomorrow/aphrodite-base/zlog"
 	"github.com/eviltomorrow/aphrodite-calculate/app"
 	"github.com/eviltomorrow/aphrodite-calculate/config"
+	"github.com/eviltomorrow/aphrodite-calculate/db"
+	"github.com/eviltomorrow/aphrodite-calculate/model"
 )
 
 const (
@@ -71,7 +73,17 @@ func setupLogConfig() {
 }
 
 func setupGlobalVars() {
+	db.MongodbDSN = cfg.MongoDB.DSN
+	db.MongodbMinOpen = cfg.MongoDB.MinOpen
+	db.MongodbMaxOpen = cfg.MongoDB.MaxOpen
 
+	db.MySQLDSN = cfg.MySQL.DSN
+	db.MySQLMinOpen = cfg.MySQL.MinOpen
+	db.MySQLMaxOpen = cfg.MySQL.MaxOpen
+
+	model.MongodbDatabaseName = cfg.MongoDB.Database
+
+	app.BeginDate = cfg.System.BeginDate
 }
 
 func printInfo() {

@@ -152,6 +152,7 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) (int64, error) {
 			return 0, err
 		}
 
+		offset += limit
 		if len(stocks) == 0 {
 			break
 		}
@@ -196,7 +197,6 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) (int64, error) {
 			return 0, err
 		}
 
-		offset += limit
 		count += affected
 	}
 	return count, nil

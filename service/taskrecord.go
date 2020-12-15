@@ -41,8 +41,6 @@ func BuildTaskRecord(begin, end time.Time) error {
 			methods = append(methods, SyncQuoteDay)
 			methods = append(methods, SyncQuoteWeek)
 		default:
-			methods = methods[:0]
-			continue
 		}
 
 	loop:
@@ -59,6 +57,8 @@ func BuildTaskRecord(begin, end time.Time) error {
 			}
 			cache = append(cache, record)
 		}
+		methods = methods[:0]
+
 		if len(cache) > 60 {
 			tx, err := db.MySQL.Begin()
 			if err != nil {

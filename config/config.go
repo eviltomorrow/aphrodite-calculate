@@ -26,8 +26,8 @@ type MongoDB struct {
 // MySQL mysql
 type MySQL struct {
 	DSN     string `json:"dsn" toml:"dsn"`
-	MinOpen uint64 `json:"min-open" toml:"min-open"`
-	MaxOpen uint64 `json:"max-open" toml:"max-open"`
+	MinOpen int    `json:"min-open" toml:"min-open"`
+	MaxOpen int    `json:"max-open" toml:"max-open"`
 }
 
 // Log 日志配置项
@@ -81,7 +81,7 @@ var DefaultGlobalConfig = &Config{
 		Level:            "info",
 		Format:           "text",
 		FileName:         "/tmp/aphrodite-calculate/data.log",
-		MaxSize:          200,
+		MaxSize:          20,
 	},
 	System: System{
 		PProfListenPort: 6070,

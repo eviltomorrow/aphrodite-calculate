@@ -22,7 +22,15 @@ func initjob() error {
 		return err
 	}
 
-	return service.BuildTaskRecord(begin, time.Now())
+	if err := service.BuildTaskRecord(begin, time.Now()); err != nil {
+		return err
+	}
+
+	if _, err := service.SyncStockAllFromMongoDBToMySQL(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func runjob() {
