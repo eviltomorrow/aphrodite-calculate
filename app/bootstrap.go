@@ -8,8 +8,8 @@ import (
 	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
-// StartupService startup service
-func StartupService() error {
+// Startup startup service
+func Startup() error {
 	db.BuildMongoDB()
 	db.BuildMySQL()
 

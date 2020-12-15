@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/eviltomorrow/aphrodite-base/zlog"
+	"github.com/eviltomorrow/aphrodite-calculate/app"
 	"github.com/eviltomorrow/aphrodite-calculate/config"
 )
 
@@ -46,6 +47,7 @@ func main() {
 	setupGlobalVars()
 	printInfo()
 	registerCleanupFunc()
+	app.Startup()
 	blockingUntilTermination()
 
 }
