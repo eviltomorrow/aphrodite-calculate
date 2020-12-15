@@ -27,7 +27,6 @@ func BuildTaskRecord(begin, end time.Time) error {
 			break
 		}
 		var current = begin.Format("2006-01-02")
-		begin = begin.AddDate(0, 0, 1)
 
 		records, err := model.SelectTaskRecordManyByDate(db.MySQL, current)
 		if err != nil {
@@ -42,6 +41,7 @@ func BuildTaskRecord(begin, end time.Time) error {
 			methods = append(methods, SyncQuoteWeek)
 		default:
 		}
+		begin = begin.AddDate(0, 0, 1)
 
 	loop:
 		for _, method := range methods {

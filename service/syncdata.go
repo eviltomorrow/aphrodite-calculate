@@ -265,10 +265,6 @@ func SyncQuoteWeekFromMongoDBToMySQL(date string) (int64, error) {
 		return 0, err
 	}
 
-	if end.Weekday() != time.Friday {
-		return 0, fmt.Errorf("Date is not Friday, date: %s", date)
-	}
-
 	begin := end.AddDate(0, 0, -5)
 
 	for {
