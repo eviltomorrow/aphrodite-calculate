@@ -129,5 +129,5 @@ func PollUncompletedTaskRecord(completed bool) ([]*model.TaskRecord, error) {
 		}
 	}
 
-	return nil, nil
+	return cache, nil
 }
