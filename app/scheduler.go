@@ -11,9 +11,9 @@ import (
 
 //
 var (
-	DefaultCronSpec             = "10 23 * * MON,TUE,WED,THU,FRI"
-	DateCH          chan string = make(chan string, 64)
-	BeginDate                   = "2020-08-31"
+	DefaultCronSpec               = "10 23 * * MON,TUE,WED,THU,FRI"
+	JobChan         chan struct{} = make(chan struct{}, 64)
+	BeginDate                     = "2020-08-31"
 )
 
 func initjob() error {
@@ -22,11 +22,13 @@ func initjob() error {
 		return err
 	}
 
-	if err := service.BuildTaskRecord(begin, time.Now()); err != nil {
+	err = service.BuildTaskRecord(begin, time.Now())
+	if err != nil {
 		return err
 	}
 
-	if _, err := service.SyncStockAllFromMongoDBToMySQL(); err != nil {
+	_, err = service.SyncStockAllFromMongoDBToMySQL()
+	if err != nil {
 		return err
 	}
 
@@ -35,8 +37,7 @@ func initjob() error {
 
 func runjob() {
 	go func() {
-		for date := range DateCH {
-			zlog.Info("Run job", zap.String("date", date))
+		for range JobChan {
 			// 获取 task
 			records, err := service.PollTaskRecord(false)
 			if err != nil {
@@ -50,17 +51,17 @@ func runjob() {
 					continue
 				}
 
-				var date = record.Date.Format("2006-01-02")
+				zlog.Info("Run job", zap.String("date", record.Date))
 				var count int64
 				switch record.Method {
 				case service.SyncQuoteDay:
-					if count, err = service.SyncQuoteDayFromMongoDBToMySQL(date); err != nil {
-						zlog.Error("Sync quote day failure", zap.Int64("id", record.ID), zap.String("date", date), zap.Error(err))
+					if count, err = service.SyncQuoteDayFromMongoDBToMySQL(record.Date); err != nil {
+						zlog.Error("Sync quote day failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
 					}
 
 				case service.SyncQuoteWeek:
-					if count, err = service.SyncQuoteWeekFromMongoDBToMySQL(date); err != nil {
-						zlog.Error("Sync quote week failure", zap.Int64("id", record.ID), zap.String("date", date), zap.Error(err))
+					if count, err = service.SyncQuoteWeekFromMongoDBToMySQL(record.Date); err != nil {
+						zlog.Error("Sync quote week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
 					}
 
 				default:
@@ -72,7 +73,7 @@ func runjob() {
 				}
 			}
 			if err := service.ArchiveTaskRecord(ids); err != nil {
-				zlog.Error("Archive task record failure", zap.Any("ids", ids), zap.String("date", date))
+				zlog.Error("Archive task record failure", zap.Any("ids", ids))
 			}
 		}
 	}()

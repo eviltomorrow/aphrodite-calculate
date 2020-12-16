@@ -136,7 +136,6 @@ const (
 	TaskRecordFieldDate            = "date"
 	TaskRecordFieldPriority        = "priority"
 	TaskRecordFieldCompleted       = "completed"
-	TaskRecordFieldNumOfTimes      = "num_of_times"
 	TaskRecordFieldCreateTimestamp = "create_timestamp"
 	TaskRecordFieldModifyTimestamp = "modify_timestamp"
 )
@@ -146,7 +145,6 @@ var taskRecordFields = []string{
 	TaskRecordFieldDate,
 	TaskRecordFieldPriority,
 	TaskRecordFieldCompleted,
-	TaskRecordFieldNumOfTimes,
 	TaskRecordFieldCreateTimestamp,
 	TaskRecordFieldModifyTimestamp,
 }
@@ -155,7 +153,7 @@ var taskRecordFields = []string{
 type TaskRecord struct {
 	ID              int64        `json:"id"`     // id
 	Method          string       `json:"method"` // 方式
-	Date            time.Time    `json:"date"`
+	Date            string       `json:"date"`
 	Priority        int          `json:"priority"`  // 优先级
 	Completed       bool         `json:"completed"` // 完成
 	CreateTimestamp time.Time    `json:"create_timestamp"`

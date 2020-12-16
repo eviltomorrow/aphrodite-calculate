@@ -57,14 +57,12 @@ func BuildTaskRecord(begin, end time.Time) error {
 
 			var record = &model.TaskRecord{
 				Method:    method,
-				Date:      begin,
+				Date:      current,
 				Completed: false,
 				Priority:  priorityLib[method],
 			}
 			cache = append(cache, record)
 		}
-		methods = methods[:0]
-		begin = begin.AddDate(0, 0, 1)
 
 		if len(cache) > 60 {
 			tx, err := db.MySQL.Begin()
@@ -81,6 +79,9 @@ func BuildTaskRecord(begin, end time.Time) error {
 			}
 			cache = cache[:0]
 		}
+
+		methods = methods[:0]
+		begin = begin.AddDate(0, 0, 1)
 	}
 
 	if len(cache) > 0 {
@@ -129,10 +130,22 @@ func PollTaskRecord(completed bool) ([]*model.TaskRecord, error) {
 	}
 
 	var cache = make([]*model.TaskRecord, 0, len(records))
+	var now = time.Now()
+	for _, record := range records {
+		d, err := time.ParseInLocation("2006-01-02", record.Date, time.Local)
+		if err != nil {
+			return nil, err
+		}
 
-	// for _, record := range records {
+		if now.Format("2006-01-02") == record.CreateTimestamp.Format("2006-01-02") {
+			cache = append(cache, record)
+			continue
+		}
 
-	// }
+		if d.After(record.CreateTimestamp.AddDate(0, 0, -14)) {
+			cache = append(cache, record)
+		}
+	}
 
 	return cache, nil
 }

@@ -1,8 +1,6 @@
 package app
 
 import (
-	"time"
-
 	"github.com/eviltomorrow/aphrodite-base/zlog"
 	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
@@ -19,7 +17,7 @@ func Startup() error {
 
 	runjob()
 
-	DateCH <- time.Now().Format("2006-01-02")
+	JobChan <- struct{}{}
 	// var c = cron.New()
 	// _, err := c.AddFunc(DefaultCronSpec, func() {
 	// 	DateCH <- time.Now().Format("2006-01-02")
