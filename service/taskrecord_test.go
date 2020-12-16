@@ -134,15 +134,15 @@ func TestArchiveTaskRecord(t *testing.T) {
 	_assert.Nil(err)
 	_assert.Equal(count, len(records))
 
-	var ids = make([]int64, 0, count)
 	for _, record := range records {
 		_assert.Equal(false, record.Completed)
 		_assert.Equal(priorityLib[record.Method], record.Priority)
-		ids = append(ids, record.ID)
-	}
 
-	err = ArchiveTaskRecord(ids)
-	_assert.Nil(err)
+		record.NumOfTimes = record.NumOfTimes + 1
+		record.Completed = true
+		err = ArchiveTaskRecord(record)
+		_assert.Nil(err)
+	}
 
 	records, err = PollTaskRecord(true)
 	_assert.Nil(err)

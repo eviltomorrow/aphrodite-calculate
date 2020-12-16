@@ -208,6 +208,9 @@ func buildQuoteWeekFromQuoteDay(code string, begin, end time.Time) (*model.Quote
 		return nil, err
 	}
 
+	for _, quote := range quotes {
+		fmt.Println(quote)
+	}
 	if len(quotes) == 0 {
 		zlog.Warn("[QuoteDay]No exist quote data", zap.String("code", code), zap.Time("begin", begin), zap.Time("end", end))
 		return nil, nil

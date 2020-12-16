@@ -1,2 +1,2 @@
 build: 
-	go build -o aphrodite-calculate.runtime -ldflags "-s -w" startup.go
+	go build -o cmd/aphrodite-calculate.runtime -ldflags "-s -w" startup.go

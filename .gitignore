@@ -1,7 +1,3 @@
-model/*.profile
-model/*.test
-
-service/*.profile
-service/*.test
-
-aphrodite-calculate.runtime
+*.profile
+*.test
+*.runtime

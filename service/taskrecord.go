@@ -103,13 +103,17 @@ func BuildTaskRecord(begin, end time.Time) error {
 }
 
 // ArchiveTaskRecord archive task record
-func ArchiveTaskRecord(ids []int64) error {
+func ArchiveTaskRecord(record *model.TaskRecord) error {
+	if record == nil {
+		return nil
+	}
+
 	tx, err := db.MySQL.Begin()
 	if err != nil {
 		return err
 	}
 
-	_, err = model.UpdateTaskRecordCompleted(tx, ids)
+	_, err = model.UpdateTaskRecord(tx, record, record.ID)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -130,19 +134,8 @@ func PollTaskRecord(completed bool) ([]*model.TaskRecord, error) {
 	}
 
 	var cache = make([]*model.TaskRecord, 0, len(records))
-	var now = time.Now()
 	for _, record := range records {
-		d, err := time.ParseInLocation("2006-01-02", record.Date, time.Local)
-		if err != nil {
-			return nil, err
-		}
-
-		if now.Format("2006-01-02") == record.CreateTimestamp.Format("2006-01-02") {
-			cache = append(cache, record)
-			continue
-		}
-
-		if d.After(record.CreateTimestamp.AddDate(0, 0, -14)) {
+		if record.NumOfTimes < 14 {
 			cache = append(cache, record)
 		}
 	}
