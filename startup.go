@@ -6,11 +6,18 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/debug"
+	"strings"
 	"syscall"
+
+	//
+	"net/http"
+	_ "net/http/pprof"
 
 	"go.uber.org/zap"
 
+	"github.com/eviltomorrow/aphrodite-base/tools"
 	"github.com/eviltomorrow/aphrodite-base/zlog"
 	"github.com/eviltomorrow/aphrodite-calculate/app"
 	"github.com/eviltomorrow/aphrodite-calculate/config"
@@ -19,15 +26,27 @@ import (
 )
 
 const (
-	nmConfig = "config"
+	nmConfig  = "config"
+	nmVersion = "v"
+	nmModel   = "model"
+)
+
+//
+var (
+	GitTag    = ""
+	BuildTime = ""
 )
 
 var (
-	path = flag.String(nmConfig, "config.toml", "配置文件路径")
+	path     = flag.String(nmConfig, "config.toml", "配置文件路径")
+	version  = flag.Bool(nmVersion, false, "版本信息")
+	runModel = flag.String(nmModel, "release", "启动模式")
 )
 
 var cfg = config.DefaultGlobalConfig
-var cpf []func()
+var cpf []func() error
+var globlFileLock tools.FileLock
+var pidpath = "aphrodite-calculate.pid"
 
 func main() {
 	defer func() {
@@ -38,8 +57,12 @@ func main() {
 		}
 		zlog.Sync()
 	}()
-
 	flag.Parse()
+
+	if *version {
+		printVersion()
+		os.Exit(0)
+	}
 
 	if err := cfg.Load(*path, overrideFlags); err != nil {
 		log.Printf("Warning: Load config file failure, use default config, nest error: %v\r\n", err)
@@ -48,8 +71,10 @@ func main() {
 	setupLogConfig()
 	setupGlobalVars()
 	printInfo()
+	checkpid()
+	startupPProfService()
 	registerCleanupFunc()
-	app.Startup()
+	startupApplication()
 	blockingUntilTermination()
 
 }
@@ -90,12 +115,55 @@ func printInfo() {
 	zlog.Info("Config information", zap.String("data", cfg.String()))
 }
 
+func printVersion() {
+	var format = `Git Tag: %s
+Build Time: %s
+`
+	fmt.Printf(format, GitTag, BuildTime)
+}
+
 func overrideFlags(cfg *config.Config) {
 
 }
 
-func registerCleanupFunc() {
+func checkpid() {
+	var dir = filepath.Dir(os.Args[0])
+	filelock, err := tools.NewFileLock(filepath.Join(dir, pidpath), false)
+	if err != nil {
+		zlog.Fatal("Check runtime's pid file failure", zap.Error(err))
+	}
+	globlFileLock = filelock
+}
 
+func registerCleanupFunc() {
+	cpf = append(cpf, db.CloseMySQL)
+	cpf = append(cpf, db.CloseMongoDB)
+}
+
+func startupPProfService() {
+	var runModel = strings.ToLower(*runModel)
+	switch runModel {
+	case "debug":
+	default:
+		return
+	}
+
+	go func() {
+		if cfg.System.PProfListenPort == 0 {
+			zlog.Fatal("PProf service port not configured.")
+		}
+		zlog.Info("Startup service pprof success.", zap.Int("pprof-port", cfg.System.PProfListenPort), zap.String("visit-page", fmt.Sprintf("http://localhost:%d/debug/pprof/", cfg.System.PProfListenPort)))
+
+		err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", cfg.System.PProfListenPort), nil)
+		if err != nil {
+			zlog.Fatal("Start service pprof failure", zap.Error(err))
+		}
+	}()
+}
+
+func startupApplication() {
+	app.Startup()
+	zlog.Info("Start application success.", zap.String("name", "aphrodite-calculate"), zap.String("model", *runModel))
 }
 
 func blockingUntilTermination() {

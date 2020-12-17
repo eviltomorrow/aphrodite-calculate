@@ -39,9 +39,9 @@ func BuildTaskRecord(begin, end time.Time) error {
 		}
 
 		switch begin.Weekday() {
-		case time.Tuesday, time.Wednesday, time.Thursday, time.Friday:
+		case time.Monday, time.Tuesday, time.Wednesday, time.Thursday:
 			methods = append(methods, SyncQuoteDay)
-		case time.Monday:
+		case time.Friday:
 			methods = append(methods, SyncQuoteDay)
 			methods = append(methods, SyncQuoteWeek)
 		default:

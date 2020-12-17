@@ -58,7 +58,7 @@ func initCrontab() {
 	if err != nil {
 		zlog.Fatal("Init: Build crontab func failure", zap.Error(err))
 	}
-	go func() { c.Start() }()
+	c.Start()
 }
 
 func runjob() {
@@ -77,7 +77,6 @@ func runjob() {
 				}
 				record.NumOfTimes = record.NumOfTimes + 1
 
-				zlog.Info("Run job", zap.String("date", record.Date))
 				var count int64
 				switch record.Method {
 				case service.SyncQuoteDay:

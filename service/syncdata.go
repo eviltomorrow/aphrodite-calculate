@@ -151,8 +151,8 @@ func SyncQuoteDayFromMongoDBToMySQL(date string) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-
 		offset += limit
+
 		if len(stocks) == 0 {
 			break
 		}
@@ -208,11 +208,8 @@ func buildQuoteWeekFromQuoteDay(code string, begin, end time.Time) (*model.Quote
 		return nil, err
 	}
 
-	for _, quote := range quotes {
-		fmt.Println(quote)
-	}
 	if len(quotes) == 0 {
-		zlog.Warn("[QuoteDay]No exist quote data", zap.String("code", code), zap.Time("begin", begin), zap.Time("end", end))
+		zlog.Warn("[QuoteDay]No exist quote data", zap.String("code", code), zap.String("begin", begin.Format("2006-01-02")), zap.String("end", end.Format("2006-01-02")))
 		return nil, nil
 	}
 
@@ -275,6 +272,7 @@ func SyncQuoteWeekFromMongoDBToMySQL(date string) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
+		offset += limit
 
 		if len(stocks) == 0 {
 			break
@@ -318,7 +316,6 @@ func SyncQuoteWeekFromMongoDBToMySQL(date string) (int64, error) {
 			return 0, err
 		}
 
-		offset += limit
 		count += affected
 	}
 	return count, nil
