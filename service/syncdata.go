@@ -133,15 +133,16 @@ func buildQuoteDayFromMongoDBToMySQL(code string, date string) (*model.QuoteDay,
 	}
 	var secondDayQuote = quotes[1]
 	var quoteDay = &model.QuoteDay{
-		Code:      code,
-		Open:      firstDayQuote.Open,
-		Close:     secondDayQuote.YesterdayClosed,
-		High:      firstDayQuote.High,
-		Low:       firstDayQuote.Low,
-		Volume:    firstDayQuote.Volume,
-		Account:   firstDayQuote.Account,
-		Date:      d,
-		DayOfYear: d.YearDay(),
+		Code:            code,
+		Open:            firstDayQuote.Open,
+		Close:           secondDayQuote.YesterdayClosed,
+		High:            firstDayQuote.High,
+		Low:             firstDayQuote.Low,
+		YesterdayClosed: firstDayQuote.YesterdayClosed,
+		Volume:          firstDayQuote.Volume,
+		Account:         firstDayQuote.Account,
+		Date:            d,
+		DayOfYear:       d.YearDay(),
 	}
 	return quoteDay, nil
 }

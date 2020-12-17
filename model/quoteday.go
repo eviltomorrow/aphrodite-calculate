@@ -17,7 +17,7 @@ func SelectQuoteDayByCodeDate(db db.ExecMySQL, code string, begin, end string) (
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = fmt.Sprintf("select id, code, open, close, high, low, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code = ? and date between ? and ?")
+	var _sql = fmt.Sprintf("select id, code, open, close, high, low, yesterday_closed, volume, account, date, day_of_year, create_timestamp, modify_timestamp from quote_day where code = ? and date between ? and ?")
 
 	rows, err := db.QueryContext(ctx, _sql, code, begin, end)
 	if err != nil {
@@ -34,6 +34,7 @@ func SelectQuoteDayByCodeDate(db db.ExecMySQL, code string, begin, end string) (
 			&quote.Close,
 			&quote.High,
 			&quote.Low,
+			&quote.YesterdayClosed,
 			&quote.Volume,
 			&quote.Account,
 			&quote.Date,
@@ -86,14 +87,15 @@ func InsertQuoteDayMany(db db.ExecMySQL, quotes []*QuoteDay) (int64, error) {
 	defer cannel()
 
 	var fields = make([]string, 0, len(quotes))
-	var args = make([]interface{}, 0, 9*len(quotes))
+	var args = make([]interface{}, 0, 10*len(quotes))
 	for _, quote := range quotes {
-		fields = append(fields, "(?, ?, ?, ?, ?, ?, ?, ?, ?, now(), null)")
+		fields = append(fields, "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), null)")
 		args = append(args, quote.Code)
 		args = append(args, quote.Open)
 		args = append(args, quote.Close)
 		args = append(args, quote.High)
 		args = append(args, quote.Low)
+		args = append(args, quote.YesterdayClosed)
 		args = append(args, quote.Volume)
 		args = append(args, quote.Account)
 		args = append(args, quote.Date)
@@ -115,6 +117,7 @@ const (
 	QuoteDayFieldClose           = "close"
 	QuoteDayFieldHigh            = "high"
 	QuoteDayFieldLow             = "low"
+	QuoteDayFieldYesterdayClosed = "yesterday_closed"
 	QuoteDayFieldVolume          = "volume"
 	QuoteDayFieldAccount         = "account"
 	QuoteDayFieldDate            = "date"
@@ -129,6 +132,7 @@ var quoteDayFields = []string{
 	QuoteDayFieldClose,
 	QuoteDayFieldHigh,
 	QuoteDayFieldLow,
+	QuoteDayFieldYesterdayClosed,
 	QuoteDayFieldVolume,
 	QuoteDayFieldAccount,
 	QuoteDayFieldDate,
@@ -145,6 +149,7 @@ type QuoteDay struct {
 	Close           float64      `json:"close"`
 	High            float64      `json:"high"`
 	Low             float64      `json:"low"`
+	YesterdayClosed float64      `json:"yesterday_closed"`
 	Volume          int64        `json:"volume"`
 	Account         float64      `json:"account"`
 	Date            time.Time    `json:"date"`

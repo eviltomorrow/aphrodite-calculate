@@ -21,6 +21,7 @@ create table `aphrodite`.`quote_day` (
     `close` DECIMAL(10,2) NOT NULL COMMENT '收盘价',
     `high` DECIMAL(10,2) NOT NULL COMMENT '最高价',
     `low` DECIMAL(10,2) NOT NULL COMMENT '最低价',
+    `yesterday_closed` DECIMAL(10,2) NOT NULL COMMENT '昨日收盘价',
     `volume` BIGINT NOT NULL COMMENT '交易量',
     `account` DECIMAL(18,2) NOT NULL COMMENT '金额',
     `date` TIMESTAMP NOT NULL COMMENT '日期',
