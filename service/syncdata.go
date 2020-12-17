@@ -112,13 +112,18 @@ func buildQuoteDayFromMongoDBToMySQL(code string, date string) (*model.QuoteDay,
 	}
 
 	if len(quotes) != 2 {
-		zlog.Warn("[QuoteBase]No enough quote data", zap.String("code", code), zap.String("date", date))
+		zlog.Warn("[QuoteBase]No enough quote data", zap.Int("total-count", len(quotes)), zap.String("code", code), zap.String("date", date))
 		return nil, nil
 	}
 
 	var firstDayQuote = quotes[0]
 	if firstDayQuote.Date != date {
-		zlog.Warn("[QuoteBase]No exist quote data", zap.String("code", code), zap.String("date", date))
+		zlog.Warn("[QuoteBase]No exist quote data", zap.String("first-date", firstDayQuote.Date), zap.String("code", code), zap.String("date", date))
+		return nil, nil
+	}
+
+	if firstDayQuote.Volume == 0 {
+		zlog.Warn("[QuoteBase]Invalid quote data", zap.Int("volume", 0), zap.String("code", code), zap.String("date", date))
 		return nil, nil
 	}
 
