@@ -11,6 +11,36 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+// SelectKDJWeekByCodeDateLimit select kdj week
+func SelectKDJWeekByCodeDateLimit(db db.ExecMySQL, code string, date string, limit int64) ([]*KDJWeek, error) {
+	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
+	defer cannel()
+
+	var _sql = fmt.Sprintf("select k, d, j from kdj_week where code = ? and date <= ? order by date desc limit ?")
+
+	rows, err := db.QueryContext(ctx, _sql, code, date, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var kdjs = make([]*KDJWeek, 0, limit)
+	for rows.Next() {
+		var kdj = KDJWeek{}
+		if err := rows.Scan(
+			&kdj.K,
+			&kdj.D,
+			&kdj.J,
+		); err != nil {
+			return nil, err
+		}
+		kdjs = append(kdjs, &kdj)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return kdjs, nil
+}
+
 // DeleteKDJWeekByCodesDate delete KDJ day by code
 func DeleteKDJWeekByCodesDate(db db.ExecMySQL, codes []string, date string) (int64, error) {
 	if len(codes) == 0 {
@@ -68,9 +98,9 @@ func InsertKDJWeekMany(db db.ExecMySQL, kdjs []*KDJWeek) (int64, error) {
 //
 const (
 	KDJWeekFieldCode            = "code"
-	KDJWeekFieldUP              = "up"
-	KDJWeekFieldMB              = "mb"
-	KDJWeekFieldDN              = "dn"
+	KDJWeekFieldUP              = "k"
+	KDJWeekFieldMB              = "d"
+	KDJWeekFieldDN              = "j"
 	KDJWeekFieldDate            = "date"
 	KDJWeekFieldWeekOfYear      = "week_of_year"
 	KDJWeekFieldCreateTimestamp = "create_timestamp"

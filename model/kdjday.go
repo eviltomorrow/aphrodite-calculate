@@ -11,6 +11,36 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+// SelectKDJDayByCodeDateLimit select kdj day
+func SelectKDJDayByCodeDateLimit(db db.ExecMySQL, code string, date string, limit int64) ([]*KDJDay, error) {
+	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
+	defer cannel()
+
+	var _sql = fmt.Sprintf("select k, d, j from kdj_day where code = ? and date < ? order by date desc limit ?")
+
+	rows, err := db.QueryContext(ctx, _sql, code, date, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var kdjs = make([]*KDJDay, 0, limit)
+	for rows.Next() {
+		var kdj = KDJDay{}
+		if err := rows.Scan(
+			&kdj.K,
+			&kdj.D,
+			&kdj.J,
+		); err != nil {
+			return nil, err
+		}
+		kdjs = append(kdjs, &kdj)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return kdjs, nil
+}
+
 // DeleteKDJDayByCodesDate delete KDJ day by code
 func DeleteKDJDayByCodesDate(db db.ExecMySQL, codes []string, date string) (int64, error) {
 	if len(codes) == 0 {

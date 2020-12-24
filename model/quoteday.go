@@ -17,7 +17,7 @@ func SelectQuoteDayByCodeDateLatest(db db.ExecMySQL, code string, date string, l
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = fmt.Sprintf("select close, date, day_of_year from quote_day where code = ? and date <= ? order by date desc limit ?")
+	var _sql = fmt.Sprintf("select close, high, low, date, day_of_year from quote_day where code = ? and date <= ? order by date desc limit ?")
 
 	rows, err := db.QueryContext(ctx, _sql, code, date, limit)
 	if err != nil {
@@ -29,6 +29,8 @@ func SelectQuoteDayByCodeDateLatest(db db.ExecMySQL, code string, date string, l
 		var quote = QuoteDay{}
 		if err := rows.Scan(
 			&quote.Close,
+			&quote.High,
+			&quote.Low,
 			&quote.Date,
 			&quote.DayOfYear,
 		); err != nil {
