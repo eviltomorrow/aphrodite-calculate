@@ -87,6 +87,24 @@ func runjob() {
 					if count, err = service.SyncQuoteWeekFromMongoDBToMySQL(record.Date); err != nil {
 						zlog.Error("Sync quote week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
 					}
+				case service.CalMADay:
+					if count, err = service.CalculateMADay(record.Date); err != nil {
+						zlog.Error("Calculate ma day failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
+				case service.CalMAWeek:
+					if count, err = service.CalculateMAWeek(record.Date); err != nil {
+						zlog.Error("Calculate ma week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
+				case service.CalBollDay:
+					if count, err = service.CalculateBollDay(record.Date); err != nil {
+						zlog.Error("Calculate boll day failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
+				case service.CalBollWeek:
+					if count, err = service.CalculateBollWeek(record.Date); err != nil {
+						zlog.Error("Calculate boll week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
+				case service.CalKDJDay:
+				case service.CalKDJWeek:
 
 				default:
 					zlog.Warn("Not support method", zap.String("method", record.Method))

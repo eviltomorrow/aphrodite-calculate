@@ -114,3 +114,11 @@ func TestSelectQuoteWeekByCodeDate(t *testing.T) {
 	_assert.Nil(err)
 	_assert.Equal(0, len(quotes))
 }
+
+func TestSelectQuoteWeekByCodeDateLatest(t *testing.T) {
+	_assert := assert.New(t)
+
+	quotes, err := SelectQuoteWeekByCodeDateLatest(db.MySQL, "sz000001", "2020-12-02", 10)
+	_assert.Nil(err)
+	_assert.Equal(10, len(quotes))
+}

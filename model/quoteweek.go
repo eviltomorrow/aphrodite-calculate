@@ -12,6 +12,36 @@ import (
 	"github.com/eviltomorrow/aphrodite-calculate/db"
 )
 
+// SelectQuoteWeekByCodeDateLatest select quoteday
+func SelectQuoteWeekByCodeDateLatest(db db.ExecMySQL, code string, date string, limit int64) ([]QuoteWeek, error) {
+	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
+	defer cannel()
+
+	var _sql = fmt.Sprintf("select close, date_end, week_of_year from quote_week where code = ? and date_end <= ? order by date_end desc limit ?")
+
+	rows, err := db.QueryContext(ctx, _sql, code, date, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var quotes = make([]QuoteWeek, 0, limit)
+	for rows.Next() {
+		var quote = QuoteWeek{}
+		if err := rows.Scan(
+			&quote.Close,
+			&quote.DateEnd,
+			&quote.WeekOfYear,
+		); err != nil {
+			return nil, err
+		}
+		quotes = append(quotes, quote)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return quotes, nil
+}
+
 // SelectQuoteWeekByCodeDate select quoteday
 func SelectQuoteWeekByCodeDate(db db.ExecMySQL, codes []string, date string) ([]QuoteWeek, error) {
 	if len(codes) == 0 {

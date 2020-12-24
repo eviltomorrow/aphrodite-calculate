@@ -147,6 +147,20 @@ func TestSelectQuoteDayByCodeDate(t *testing.T) {
 	_assert.Nil(nil)
 }
 
+func TestSelectQuoteDayByCodeDateLatest(t *testing.T) {
+	_assert := assert.New(t)
+
+	quotes, err := SelectQuoteDayByCodeDateLatest(db.MySQL, "sz000001", "2020-12-02", 10)
+	_assert.Nil(err)
+	_assert.Equal(10, len(quotes))
+}
+
+func BenchmarkSelectQuoteDayByCodeDateLatest(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		SelectQuoteDayByCodeDateLatest(db.MySQL, "sz000001", "2020-12-02", 30)
+	}
+}
+
 func BenchmarkInsertQuoteDayMany(b *testing.B) {
 	tx, err := db.MySQL.Begin()
 	if err != nil {

@@ -12,12 +12,20 @@ import (
 const (
 	SyncQuoteDay  = "SYNC_QUOTEDAY"
 	SyncQuoteWeek = "SYNC_QUOTEWEEK"
+	CalMADay      = "CAL_MADAY"
+	CalMAWeek     = "CAL_MAWEEK"
+	CalKDJDay     = "CAL_KDJDAY"
+	CalKDJWeek    = "CAL_KDJWeek"
+	CalBollDay    = "CAL_BollDAY"
+	CalBollWeek   = "CAL_BollWeek"
 )
 
 var priorityLib = map[string]int{
 	SyncQuoteDay:  0,
 	SyncQuoteWeek: 1,
 }
+
+var date2021 = time.Date(2021, time.January, 1, 0, 0, 0, 0, time.Local)
 
 // BuildTaskRecord build task record
 func BuildTaskRecord(begin, end time.Time) error {
@@ -41,9 +49,26 @@ func BuildTaskRecord(begin, end time.Time) error {
 		switch begin.Weekday() {
 		case time.Monday, time.Tuesday, time.Wednesday, time.Thursday:
 			methods = append(methods, SyncQuoteDay)
+
+			if begin.After(date2021) {
+				methods = append(methods, CalMADay)
+				methods = append(methods, CalBollDay)
+				methods = append(methods, CalKDJDay)
+			}
 		case time.Friday:
 			methods = append(methods, SyncQuoteDay)
 			methods = append(methods, SyncQuoteWeek)
+
+			if begin.After(date2021) {
+				methods = append(methods, CalMADay)
+				methods = append(methods, CalBollDay)
+				methods = append(methods, CalKDJDay)
+
+				methods = append(methods, CalMAWeek)
+				methods = append(methods, CalBollWeek)
+				methods = append(methods, CalKDJWeek)
+			}
+
 		default:
 		}
 
