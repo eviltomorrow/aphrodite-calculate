@@ -40,12 +40,15 @@ func buildKDJDay(code string, date string) (*model.KDJDay, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	var k, d, j float64
 	if len(kdjs) == 1 {
 		kpre = kdjs[0].K
 		dpre = kdjs[0].D
+		k, d, j = kdj2(c, highs, lows, kpre, dpre)
+	} else {
+		k, d, j = kdj(c, highs, lows, kpre, dpre)
 	}
-
-	k, d, j := kdj(c, highs, lows, kpre, dpre)
 
 	return &model.KDJDay{
 		Code:      code,
@@ -240,6 +243,21 @@ func kdj(c float64, high []float64, low []float64, kpre, dpre float64) (float64,
 	var rsv = (c - l) / (h - l) * 100
 	var k = (m*rsv + (n-m)*kpre) / n
 	var d = (m*k + (n-m)*dpre) / n
+	var j = 3.0*k - 2.0*d
+
+	return tools.Trunc2(k), tools.Trunc2(d), tools.Trunc2(j)
+}
+
+func kdj2(c float64, high []float64, low []float64, kpre, dpre float64) (float64, float64, float64) {
+	if len(high) != len(low) {
+		return 0, 0, 0
+	}
+	var h = tools.CalcalateMaxFloat64(high)
+	var l = tools.CalcalateMinFloat64(low)
+
+	var rsv = (c - l) / (h - l) * 100
+	var k = 2.0/3.0*kpre + 1.0/3.0*rsv
+	var d = 2.0/3.0*dpre + 1.0/3.0*k
 	var j = 3.0*k - 2.0*d
 
 	return tools.Trunc2(k), tools.Trunc2(d), tools.Trunc2(j)

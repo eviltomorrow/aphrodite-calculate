@@ -1,0 +1,2 @@
+数据：
+     mongorestore -d aphrodite aphrodite/

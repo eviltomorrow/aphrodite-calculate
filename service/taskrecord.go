@@ -23,6 +23,12 @@ const (
 var priorityLib = map[string]int{
 	SyncQuoteDay:  0,
 	SyncQuoteWeek: 1,
+	CalMADay:      1,
+	CalMAWeek:     1,
+	CalKDJDay:     1,
+	CalKDJWeek:    1,
+	CalBollDay:    1,
+	CalBollWeek:   1,
 }
 
 var date2021 = time.Date(2021, time.January, 1, 0, 0, 0, 0, time.Local)

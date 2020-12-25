@@ -13,6 +13,14 @@ func TestCalculateKDJDay(t *testing.T) {
 	_assert.Nil(err)
 }
 
+func TestIBuildKDJDay(t *testing.T) {
+	_assert := assert.New(t)
+	var date = "2020-12-03"
+	kdj, err := buildKDJDay("sz300999", date)
+	_assert.Nil(err)
+	t.Logf("%s\r\n", kdj)
+}
+
 func TestCalculateKDJWeek(t *testing.T) {
 	_assert := assert.New(t)
 	var date = "2020-11-27"
