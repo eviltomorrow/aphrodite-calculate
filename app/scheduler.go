@@ -104,7 +104,13 @@ func runjob() {
 						zlog.Error("Calculate boll week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
 					}
 				case service.CalKDJDay:
+					if count, err = service.CalculateKDJDay(record.Date); err != nil {
+						zlog.Error("Calculate kdj day failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
 				case service.CalKDJWeek:
+					if count, err = service.CalculateKDJWeek(record.Date); err != nil {
+						zlog.Error("Calculate kdj week failure", zap.Int64("id", record.ID), zap.String("date", record.Date), zap.Error(err))
+					}
 
 				default:
 					zlog.Warn("Not support method", zap.String("method", record.Method))

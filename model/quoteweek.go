@@ -17,7 +17,7 @@ func SelectQuoteWeekByCodeDateLatest(db db.ExecMySQL, code string, date string, 
 	ctx, cannel := context.WithTimeout(context.Background(), SelectTimeout)
 	defer cannel()
 
-	var _sql = fmt.Sprintf("select close, date_end, week_of_year from quote_week where code = ? and date_end <= ? order by date_end desc limit ?")
+	var _sql = fmt.Sprintf("select close, high, low, date_end, week_of_year from quote_week where code = ? and date_end <= ? order by date_end desc limit ?")
 
 	rows, err := db.QueryContext(ctx, _sql, code, date, limit)
 	if err != nil {
@@ -29,6 +29,8 @@ func SelectQuoteWeekByCodeDateLatest(db db.ExecMySQL, code string, date string, 
 		var quote = QuoteWeek{}
 		if err := rows.Scan(
 			&quote.Close,
+			&quote.High,
+			&quote.Low,
 			&quote.DateEnd,
 			&quote.WeekOfYear,
 		); err != nil {

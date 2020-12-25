@@ -194,7 +194,7 @@ func CalculateMADay(date string) (int64, error) {
 
 		count += affected
 	}
-	return 0, nil
+	return count, nil
 }
 
 // CalculateMAWeek calculate ma day
@@ -255,7 +255,7 @@ func CalculateMAWeek(date string) (int64, error) {
 
 		count += affected
 	}
-	return 0, nil
+	return count, nil
 }
 
 var n10 = math.Pow10(2)
