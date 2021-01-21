@@ -53,6 +53,11 @@ func initCrontab() {
 			zlog.Error("Build task record failure", zap.Time("date", today), zap.Error(err))
 		}
 
+		_, err = service.SyncStockAllFromMongoDBToMySQL()
+		if err != nil {
+			zlog.Error("Sync stock list failure", zap.Error(err))
+		}
+
 		JobChan <- struct{}{}
 	})
 	if err != nil {
