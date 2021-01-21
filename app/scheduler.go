@@ -8,7 +8,7 @@ import (
 	"github.com/eviltomorrow/aphrodite-base/zlog"
 	"github.com/eviltomorrow/aphrodite-calculate/db"
 	"github.com/eviltomorrow/aphrodite-calculate/service"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 )
 
 //
