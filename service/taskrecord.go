@@ -31,7 +31,7 @@ var priorityLib = map[string]int{
 	CalBollWeek:   1,
 }
 
-var date2021 = time.Date(2021, time.January, 1, 0, 0, 0, 0, time.Local)
+var date2021 = time.Date(2021, time.February, 2, 0, 0, 0, 0, time.Local)
 
 // BuildTaskRecord build task record
 func BuildTaskRecord(begin, end time.Time) error {
